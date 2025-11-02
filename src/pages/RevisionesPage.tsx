@@ -5,9 +5,10 @@ import vehiculosService from '../services/vehiculos.service';
 import certificadosService from '../services/certificados.service';
 import type { Revision, CreateRevisionDto, ResultadoRevision, EstadisticasRevisiones } from '../types/revisiones.types';
 import type { Vehiculo } from '../types/vehiculos.types';
+import { UserRole } from '../types/auth.types';
 
 export default function RevisionesPage() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [revisiones, setRevisiones] = useState<Revision[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [estadisticas, setEstadisticas] = useState<EstadisticasRevisiones | null>(null);
@@ -102,6 +103,10 @@ export default function RevisionesPage() {
     </div>;
   }
 
+  // Determinar permisos
+  const isPlantaOperador = user?.role === UserRole.PLANTA_OPERADOR || user?.role === 'PLANTA_OPERADOR';
+  const isPlantaAdmin = user?.role === UserRole.PLANTA_ADMIN || user?.role === 'PLANTA_ADMIN';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <nav className="bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
@@ -172,23 +177,24 @@ export default function RevisionesPage() {
             <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               Listado de Revisiones
             </h2>
-            
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className={`
-                flex items-center gap-2 px-6 py-3 rounded-xl font-semibold shadow-lg transition-all duration-200
-                ${showForm 
-                  ? 'bg-red-500 hover:bg-red-600 text-white' 
-                  : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
-                }
-              `}
-            >
-              {showForm ? '✕ Cancelar' : '+ Nueva Revisión'}
-            </button>
+            {isPlantaOperador && (
+              <button
+                onClick={() => setShowForm(!showForm)}
+                className={`
+                  flex items-center gap-2 px-6 py-3 rounded-xl font-semibold shadow-lg transition-all duration-200
+                  ${showForm 
+                    ? 'bg-red-500 hover:bg-red-600 text-white' 
+                    : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
+                  }
+                `}
+              >
+                {showForm ? '✕ Cancelar' : '+ Nueva Revisión'}
+              </button>
+            )}
           </div>
 
           {/* Formulario */}
-          {showForm && (
+          {showForm && isPlantaOperador && (
             <div className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border-2 border-blue-100 mb-8">
               <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 Nueva Revisión Técnica
@@ -365,7 +371,7 @@ export default function RevisionesPage() {
                           : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {revision.resultado === 'APROBADO' && !revision.oleaId && (
+                        {revision.resultado === 'APROBADO' && !revision.oleaId && isPlantaAdmin && (
                           <button
                             onClick={() => handleAsignarOblea(revision.id)}
                             className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
@@ -373,7 +379,7 @@ export default function RevisionesPage() {
                             Asignar Oblea
                           </button>
                         )}
-                        {revision.oleaId && (
+                        {revision.oleaId && isPlantaAdmin && (
                           <button
                             onClick={() => handleDescargarCertificado(revision.id)}
                             className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 ml-2"

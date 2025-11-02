@@ -10,7 +10,6 @@ import {
   Building2, 
   BarChart3, 
   Users, 
-  Settings,
   FileText,
   CreditCard
 } from 'lucide-react';
@@ -35,14 +34,16 @@ export const DashboardPage = () => {
 
   const getRoleName = (role: UserRole | string) => {
     const normalizedRole = typeof role === 'string' ? role.toUpperCase() : role;
-    
     switch (normalizedRole) {
       case 'CAMARA':
       case UserRole.CAMARA:
         return 'Cámara de RTV';
-      case 'PLANTA':
-      case UserRole.PLANTA:
-        return 'Planta de RTV';
+      case 'PLANTA_ADMIN':
+      case UserRole.PLANTA_ADMIN:
+        return 'Admin de Planta';
+      case 'PLANTA_OPERADOR':
+      case UserRole.PLANTA_OPERADOR:
+        return 'Operador de Planta';
       case 'MUNICIPIO':
       case UserRole.MUNICIPIO:
         return 'Municipio';
@@ -65,79 +66,50 @@ export const DashboardPage = () => {
               onClick={() => navigate('/bloques')}
             />
             <DashboardCard
-              title="Vehículos"
-              description="Registrar y gestionar vehículos"
-              icon={Car}
-              color="#6366f1"
-              onClick={() => navigate('/vehiculos')}
-            />
-            <DashboardCard
-              title="Revisiones Técnicas"
-              description="Crear revisiones y asignar obleas"
-              icon={CheckCircle}
-              color="#10b981"
-              onClick={() => navigate('/revisiones')}
-            />
-            <DashboardCard
               title="Plantas"
               description="Administrar plantas de revisión técnica"
               icon={Factory}
               color="#14b8a6"
+              onClick={() => navigate('/plantas')}
             />
             <DashboardCard
               title="Municipios"
               description="Gestionar municipios y fiscales"
               icon={Building2}
               color="#a855f7"
-            />
-            <DashboardCard
-              title="Reportes"
-              description="Visualizar estadísticas y reportes generales"
-              icon={BarChart3}
-              color="#eab308"
+              onClick={() => navigate('/municipios')}
             />
             <DashboardCard
               title="Usuarios"
               description="Administrar usuarios del sistema"
               icon={Users}
               color="#ec4899"
-            />
-            <DashboardCard
-              title="Configuración"
-              description="Configuración general del sistema"
-              icon={Settings}
-              color="#6b7280"
+              onClick={() => navigate('/usuarios')}
             />
           </div>
         );
 
-      case UserRole.PLANTA:
-      case 'PLANTA':
+      case UserRole.PLANTA_ADMIN:
+      case 'PLANTA_ADMIN':
         return (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <DashboardCard
-              title="Revisiones Técnicas"
-              description="Crear y gestionar revisiones"
-              icon={CheckCircle}
-              color="#10b981"
-              onClick={() => navigate('/revisiones')}
-            />
-            <DashboardCard
               title="Vehículos"
-              description="Registrar y consultar vehículos"
+              description="Registrar y gestionar vehículos de la planta"
               icon={Car}
               color="#6366f1"
               onClick={() => navigate('/vehiculos')}
             />
             <DashboardCard
-              title="Mis Obleas"
-              description="Ver obleas disponibles y asignadas"
-              icon={FileText}
-              color="#3b82f6"
+              title="Revisiones Técnicas"
+              description="Ver y gestionar revisiones de la planta"
+              icon={CheckCircle}
+              color="#10b981"
+              onClick={() => navigate('/revisiones')}
             />
             <DashboardCard
               title="Certificados"
-              description="Gestionar certificados emitidos"
+              description="Ver y descargar certificados emitidos"
               icon={FileText}
               color="#eab308"
             />
@@ -146,6 +118,20 @@ export const DashboardPage = () => {
               description="Ver rendimiento de la planta"
               icon={BarChart3}
               color="#ec4899"
+            />
+          </div>
+        );
+
+      case UserRole.PLANTA_OPERADOR:
+      case 'PLANTA_OPERADOR':
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <DashboardCard
+              title="Revisiones Técnicas"
+              description="Crear y editar revisiones propias"
+              icon={CheckCircle}
+              color="#10b981"
+              onClick={() => navigate('/revisiones')}
             />
           </div>
         );

@@ -47,17 +47,32 @@ export const LoginPage = () => {
 
   // Credenciales de ejemplo para facilitar el testing
   const testCredentials = [
-    // Salta
+    // Salta - Cámara
     { email: 'admin@camarasalta.gob.ar', password: 'Password123!', role: 'CAMARA', provincia: 'Salta' },
-    { email: 'operador@vtvsalta.com.ar', password: 'Password123!', role: 'PLANTA', provincia: 'Salta' },
+    // Salta - Plantas
+    { email: 'admin.salta.centro@vtvsalta.com.ar', password: 'Password123!', role: 'PLANTA_ADMIN', provincia: 'Salta' },
+    { email: 'operador.salta.centro@vtvsalta.com.ar', password: 'Password123!', role: 'PLANTA_OPERADOR', provincia: 'Salta' },
+    { email: 'admin.salta.norte@vtvsalta.com.ar', password: 'Password123!', role: 'PLANTA_ADMIN', provincia: 'Salta' },
+    { email: 'operador.salta.norte@vtvsalta.com.ar', password: 'Password123!', role: 'PLANTA_OPERADOR', provincia: 'Salta' },
+    { email: 'admin.salta.oran@vtvoran.com.ar', password: 'Password123!', role: 'PLANTA_ADMIN', provincia: 'Salta' },
+    { email: 'operador.salta.oran@vtvoran.com.ar', password: 'Password123!', role: 'PLANTA_OPERADOR', provincia: 'Salta' },
+    // Salta - Municipio
     { email: 'fiscal@saltacapital.gob.ar', password: 'Password123!', role: 'MUNICIPIO', provincia: 'Salta' },
-    // Córdoba
+    // Córdoba - Cámara
     { email: 'admin@camaracordoba.org.ar', password: 'Password123!', role: 'CAMARA', provincia: 'Córdoba' },
-    { email: 'operador@rtocordoba.com.ar', password: 'Password123!', role: 'PLANTA', provincia: 'Córdoba' },
+    // Córdoba - Plantas
+    { email: 'admin.cordoba.centro@rtocordoba.com.ar', password: 'Password123!', role: 'PLANTA_ADMIN', provincia: 'Córdoba' },
+    { email: 'operador.cordoba.centro@rtocordoba.com.ar', password: 'Password123!', role: 'PLANTA_OPERADOR', provincia: 'Córdoba' },
+    { email: 'admin.cordoba.villamaria@rtovmaria.com.ar', password: 'Password123!', role: 'PLANTA_ADMIN', provincia: 'Córdoba' },
+    { email: 'operador.cordoba.villamaria@rtovmaria.com.ar', password: 'Password123!', role: 'PLANTA_OPERADOR', provincia: 'Córdoba' },
+    // Córdoba - Municipio
     { email: 'fiscal@cordobacapital.gob.ar', password: 'Password123!', role: 'MUNICIPIO', provincia: 'Córdoba' },
-    // Tucumán
+    // Tucumán - Cámara
     { email: 'admin@camaratucuman.gob.ar', password: 'Password123!', role: 'CAMARA', provincia: 'Tucumán' },
-    { email: 'operador@vtvtucuman.com.ar', password: 'Password123!', role: 'PLANTA', provincia: 'Tucumán' },
+    // Tucumán - Planta
+    { email: 'admin.tucuman.centro@vtvtucuman.com.ar', password: 'Password123!', role: 'PLANTA_ADMIN', provincia: 'Tucumán' },
+    { email: 'operador.tucuman.centro@vtvtucuman.com.ar', password: 'Password123!', role: 'PLANTA_OPERADOR', provincia: 'Tucumán' },
+    // Tucumán - Municipio
     { email: 'fiscal@smtucuman.gob.ar', password: 'Password123!', role: 'MUNICIPIO', provincia: 'Tucumán' },
   ];
 
@@ -307,7 +322,8 @@ export const LoginPage = () => {
                               <Badge 
                                 variant={
                                   cred.role === 'CAMARA' ? 'default' : 
-                                  cred.role === 'PLANTA' ? 'secondary' : 
+                                  cred.role === 'PLANTA_ADMIN' ? 'secondary' :
+                                  cred.role === 'PLANTA_OPERADOR' ? 'outline' :
                                   'outline'
                                 }
                                 className="font-bold text-xs px-3 py-1 shadow-sm"
