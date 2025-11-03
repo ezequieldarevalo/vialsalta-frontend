@@ -8,6 +8,9 @@ import VerificarPage from './pages/VerificarPage';
 import { UserRole } from './types/auth.types';
 import RevisionesPage from './pages/RevisionesPage';
 import VehiculosPage from './pages/VehiculosPage';
+import PlantasPage from './pages/PlantasPage';
+import MunicipiosPage from './pages/MunicipiosPage';
+import UsersPage from './pages/UsersPage';
 
 
 function App() {
@@ -48,9 +51,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          {/* Rutas de plantas, municipios y usuarios (deberían tener sus propios componentes y rutas) */}
-          {/* Ejemplo para plantas: */}
-          {/*
           <Route
             path="/plantas"
             element={
@@ -59,47 +59,22 @@ function App() {
               </ProtectedRoute>
             }
           />
-          */}
-          <Route path="/verificar/:codigoQr?" element={<VerificarPage />} />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
-  );
-  return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
           <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bloques"
+            path="/municipios"
             element={
               <ProtectedRoute allowedRoles={[UserRole.CAMARA]}>
-                <BloquesPage />
+                <MunicipiosPage />
               </ProtectedRoute>
             }
           />
-          {/* Rutas de plantas, municipios y usuarios (deberían tener sus propios componentes y rutas) */}
-          {/* Ejemplo para plantas: */}
-          {/*
           <Route
-            path="/plantas"
+            path="/usuarios"
             element={
               <ProtectedRoute allowedRoles={[UserRole.CAMARA]}>
-                <PlantasPage />
+                <UsersPage />
               </ProtectedRoute>
             }
           />
-          */}
           <Route path="/verificar/:codigoQr?" element={<VerificarPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

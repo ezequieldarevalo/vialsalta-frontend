@@ -6,6 +6,31 @@ import certificadosService from '../services/certificados.service';
 import type { Revision, CreateRevisionDto, ResultadoRevision, EstadisticasRevisiones } from '../types/revisiones.types';
 import type { Vehiculo } from '../types/vehiculos.types';
 import { UserRole } from '../types/auth.types';
+import {
+  Box,
+  Button,
+  Typography,
+  CircularProgress,
+  Card,
+  CardContent,
+  Chip,
+  TextField,
+  MenuItem,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Autocomplete,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from '@mui/material';
+import { ArrowBack, Logout, CheckCircle, Cancel, Warning, Add, Close, Description } from '@mui/icons-material';
 
 export default function RevisionesPage() {
   const { user, logout } = useAuth();
@@ -15,7 +40,6 @@ export default function RevisionesPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [dominioSearch, setDominioSearch] = useState('');
-  const [showVehiculosList, setShowVehiculosList] = useState(false);
   const [formData, setFormData] = useState<CreateRevisionDto>({
     vehiculoId: 0,
     resultado: 'APROBADO' as ResultadoRevision,
@@ -89,18 +113,20 @@ export default function RevisionesPage() {
   };
 
   const getResultadoBadge = (resultado: ResultadoRevision) => {
-    const colors = {
-      APROBADO: 'bg-green-100 text-green-800',
-      RECHAZADO: 'bg-red-100 text-red-800',
-      CONDICIONAL: 'bg-yellow-100 text-yellow-800',
+    const config = {
+      APROBADO: { color: 'success' as const, icon: <CheckCircle sx={{ fontSize: 16 }} /> },
+      RECHAZADO: { color: 'error' as const, icon: <Cancel sx={{ fontSize: 16 }} /> },
+      CONDICIONAL: { color: 'warning' as const, icon: <Warning sx={{ fontSize: 16 }} /> },
     };
-    return colors[resultado] || 'bg-gray-100 text-gray-800';
+    return config[resultado] || { color: 'default' as const, icon: null };
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="text-xl">Cargando...</div>
-    </div>;
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <CircularProgress />
+      </Box>
+    );
   }
 
   // Determinar permisos
@@ -108,306 +134,358 @@ export default function RevisionesPage() {
   const isPlantaAdmin = user?.role === UserRole.PLANTA_ADMIN || user?.role === 'PLANTA_ADMIN';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <nav className="bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <button
+    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
+      {/* Header unificado */}
+      <Box sx={{ bgcolor: 'white', boxShadow: 2, mb: 3 }}>
+        <Box sx={{ maxWidth: '1400px', mx: 'auto', px: 3, py: 2 }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h5" fontWeight="bold" sx={{
+              background: 'linear-gradient(90deg, #2563eb, #4f46e5)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              Revisiones Técnicas Vehiculares (RTV)
+            </Typography>
+            <Box display="flex" gap={2}>
+              <Button
                 onClick={() => window.location.href = '/dashboard'}
-                className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors font-medium"
+                variant="outlined"
+                startIcon={<ArrowBack />}
               >
-                ← Volver
-              </button>
-              <div className="h-6 w-px bg-gray-300" />
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Revisiones Técnicas Vehiculares (RTV)
-              </h1>
-            </div>
-            <div className="flex items-center">
-              <button
+                Volver
+              </Button>
+              <Button
                 onClick={logout}
-                className="text-gray-600 hover:text-red-600 transition-colors font-medium"
+                variant="outlined"
+                color="error"
+                startIcon={<Logout />}
               >
-                Cerrar Sesión
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+                Salir
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
 
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      {/* Content */}
+      <Box px={3} maxWidth="1400px" mx="auto" pb={4}>
         {/* Estadísticas */}
         {estadisticas && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 3, mb: 4 }}>
             {/* Total */}
-            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-6 rounded-2xl shadow-xl text-white">
-              <div className="text-sm font-medium opacity-90 mb-1">Total Revisiones</div>
-              <div className="text-4xl font-bold">{estadisticas.total}</div>
-            </div>
+            <Card sx={{ background: 'linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%)', color: 'white', boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="body2" sx={{ opacity: 0.9, mb: 0.5 }}>Total Revisiones</Typography>
+                <Typography variant="h3" fontWeight="bold">{estadisticas.total}</Typography>
+              </CardContent>
+            </Card>
             
             {/* Aprobadas */}
-            <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-6 rounded-2xl shadow-xl text-white">
-              <div className="text-sm font-medium opacity-90 mb-1">Aprobadas</div>
-              <div className="text-4xl font-bold mb-2">{estadisticas.aprobadas}</div>
-              <div className="text-xs bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 inline-block">
-                Tasa: {estadisticas.tasaAprobacion}
-              </div>
-            </div>
+            <Card sx={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="body2" sx={{ opacity: 0.9, mb: 0.5 }}>Aprobadas</Typography>
+                <Typography variant="h3" fontWeight="bold" sx={{ mb: 1 }}>{estadisticas.aprobadas}</Typography>
+                <Chip label={`Tasa: ${estadisticas.tasaAprobacion}`} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600 }} />
+              </CardContent>
+            </Card>
             
             {/* Rechazadas */}
-            <div className="bg-gradient-to-br from-red-500 to-pink-600 p-6 rounded-2xl shadow-xl text-white">
-              <div className="text-sm font-medium opacity-90 mb-1">Rechazadas</div>
-              <div className="text-4xl font-bold">{estadisticas.rechazadas}</div>
-            </div>
+            <Card sx={{ background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: 'white', boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="body2" sx={{ opacity: 0.9, mb: 0.5 }}>Rechazadas</Typography>
+                <Typography variant="h3" fontWeight="bold">{estadisticas.rechazadas}</Typography>
+              </CardContent>
+            </Card>
             
             {/* Con Oblea */}
-            <div className="bg-gradient-to-br from-purple-500 to-violet-600 p-6 rounded-2xl shadow-xl text-white">
-              <div className="text-sm font-medium opacity-90 mb-1">Con Oblea</div>
-              <div className="text-4xl font-bold mb-2">{estadisticas.conOblea}</div>
-              <div className="text-xs bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 inline-block">
-                Sin oblea: {estadisticas.sinOblea}
-              </div>
-            </div>
-          </div>
+            <Card sx={{ background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)', color: 'white', boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="body2" sx={{ opacity: 0.9, mb: 0.5 }}>Con Oblea</Typography>
+                <Typography variant="h3" fontWeight="bold" sx={{ mb: 1 }}>{estadisticas.conOblea}</Typography>
+                <Chip label={`Sin oblea: ${estadisticas.sinOblea}`} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600 }} />
+              </CardContent>
+            </Card>
+          </Box>
         )}
 
-        <div className="px-4 py-6 sm:px-0">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Listado de Revisiones
-            </h2>
-            {isPlantaOperador && (
-              <button
-                onClick={() => setShowForm(!showForm)}
-                className={`
-                  flex items-center gap-2 px-6 py-3 rounded-xl font-semibold shadow-lg transition-all duration-200
-                  ${showForm 
-                    ? 'bg-red-500 hover:bg-red-600 text-white' 
-                    : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
-                  }
-                `}
-              >
-                {showForm ? '✕ Cancelar' : '+ Nueva Revisión'}
-              </button>
-            )}
-          </div>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h6" fontWeight="bold">
+            Listado de Revisiones
+          </Typography>
+          {isPlantaOperador && (
+            <Button
+              onClick={() => setShowForm(!showForm)}
+              variant="contained"
+              color={showForm ? 'error' : 'success'}
+              startIcon={showForm ? <Close /> : <Add />}
+            >
+              {showForm ? 'Cancelar' : 'Nueva Revisión'}
+            </Button>
+          )}
+        </Box>
 
-          {/* Formulario */}
-          {showForm && isPlantaOperador && (
-            <div className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border-2 border-blue-100 mb-8">
-              <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Nueva Revisión Técnica
-              </h2>
-              <form onSubmit={handleCreate} className="space-y-6">
-                <div className="relative">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Buscar Vehículo por Dominio *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={dominioSearch}
-                    onChange={(e) => {
-                      setDominioSearch(e.target.value.toUpperCase());
-                      setShowVehiculosList(true);
+          {/* Dialog Modal para Nueva Revisión */}
+          <Dialog 
+            open={showForm && isPlantaOperador} 
+            onClose={() => setShowForm(false)}
+            maxWidth="sm"
+            fullWidth
+            PaperProps={{
+              sx: {
+                borderRadius: 2,
+                boxShadow: 5
+              }
+            }}
+          >
+            <DialogTitle sx={{ 
+              background: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
+              color: 'white',
+              fontWeight: 'bold',
+              fontSize: '1.25rem'
+            }}>
+              ✨ Nueva Revisión Técnica
+            </DialogTitle>
+            
+            <DialogContent sx={{ mt: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
+                {/* Autocomplete para Vehículo */}
+                <Box>
+                  <Autocomplete
+                    freeSolo
+                    options={vehiculos}
+                    getOptionLabel={(option) => 
+                      typeof option === 'string' 
+                        ? option 
+                        : `${option.dominio} - ${option.marca} ${option.modelo} (${option.anio})`
+                    }
+                    inputValue={dominioSearch}
+                    onInputChange={(_, newValue) => {
+                      setDominioSearch(newValue.toUpperCase());
                     }}
-                    onFocus={() => setShowVehiculosList(true)}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl uppercase focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all"
-                    placeholder="Ej: ABC123"
-                  />
-                  
-                  {/* Lista desplegable de vehículos filtrados */}
-                  {showVehiculosList && vehiculos.length > 0 && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      {vehiculos
-                        .filter((v) =>
-                          v.dominio.toUpperCase().includes(dominioSearch.toUpperCase()) ||
-                          `${v.marca} ${v.modelo}`.toUpperCase().includes(dominioSearch.toUpperCase())
-                        )
-                        .map((v) => (
-                          <button
-                            key={v.id}
-                            type="button"
-                            onClick={() => {
-                              setFormData({ ...formData, vehiculoId: v.id });
-                              setDominioSearch(`${v.dominio} - ${v.marca} ${v.modelo} (${v.anio})`);
-                              setShowVehiculosList(false);
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 border-b last:border-b-0"
-                          >
-                            <div className="font-semibold">{v.dominio}</div>
-                            <div className="text-sm text-gray-600">
-                              {v.marca} {v.modelo} ({v.anio})
-                            </div>
-                          </button>
-                        ))}
-                      {vehiculos.filter((v) =>
+                    onChange={(_, newValue) => {
+                      if (newValue && typeof newValue !== 'string') {
+                        setFormData({ ...formData, vehiculoId: newValue.id });
+                        setDominioSearch(`${newValue.dominio} - ${newValue.marca} ${newValue.modelo} (${newValue.anio})`);
+                      }
+                    }}
+                    filterOptions={(options) => 
+                      options.filter((v) =>
                         v.dominio.toUpperCase().includes(dominioSearch.toUpperCase()) ||
                         `${v.marca} ${v.modelo}`.toUpperCase().includes(dominioSearch.toUpperCase())
-                      ).length === 0 && (
-                        <div className="px-4 py-3 text-sm text-gray-500">
-                          No se encontraron vehículos. <a href="/vehiculos" className="text-blue-600 underline">Registrar nuevo vehículo</a>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
+                      )
+                    }
+                    renderOption={(props, option) => (
+                      <Box component="li" {...props}>
+                        <Box>
+                          <Typography fontWeight="600">{option.dominio}</Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {option.marca} {option.modelo} ({option.anio})
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Buscar Vehículo por Dominio"
+                        required
+                        placeholder="Ej: ABC123"
+                        inputProps={{
+                          ...params.inputProps,
+                          style: { textTransform: 'uppercase' }
+                        }}
+                      />
+                    )}
+                  />
                   {formData.vehiculoId > 0 && (
-                    <div className="mt-2 text-sm text-green-600">
+                    <Alert severity="success" sx={{ mt: 1 }} icon={false}>
                       ✓ Vehículo seleccionado
-                    </div>
+                    </Alert>
                   )}
-                </div>
+                </Box>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Resultado de la Revisión *
-                  </label>
-                  <select
+                {/* Select de Resultado */}
+                <Box>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Resultado de la Revisión"
+                    required
                     value={formData.resultado}
                     onChange={(e) => setFormData({ ...formData, resultado: e.target.value as ResultadoRevision })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all"
                   >
-                    <option value="APROBADO">✅ APROBADO</option>
-                    <option value="RECHAZADO">❌ RECHAZADO</option>
-                    <option value="CONDICIONAL">⚠️ CONDICIONAL</option>
-                  </select>
+                    <MenuItem value="APROBADO">✅ APROBADO</MenuItem>
+                    <MenuItem value="RECHAZADO">❌ RECHAZADO</MenuItem>
+                    <MenuItem value="CONDICIONAL">⚠️ CONDICIONAL</MenuItem>
+                  </TextField>
                   {formData.resultado === 'APROBADO' && (
-                    <p className="text-sm text-green-600 mt-2 bg-green-50 px-3 py-2 rounded-lg">
-                      ✓ Luego de crear la revisión, podrá asignar una oblea automáticamente
-                    </p>
+                    <Alert severity="info" sx={{ mt: 1.5 }}>
+                      Luego podrá asignar una oblea automáticamente
+                    </Alert>
                   )}
-                </div>
+                </Box>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Kilometraje
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={formData.kilometraje || ''}
-                    onChange={(e) => setFormData({ ...formData, kilometraje: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all"
-                    placeholder="45000"
-                  />
-                </div>
+                {/* Kilometraje */}
+                <TextField
+                  type="number"
+                  label="Kilometraje"
+                  fullWidth
+                  inputProps={{ min: 0 }}
+                  value={formData.kilometraje || ''}
+                  onChange={(e) => setFormData({ ...formData, kilometraje: parseInt(e.target.value) || 0 })}
+                  placeholder="45000"
+                />
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Observaciones
-                  </label>
-                  <textarea
-                    value={formData.observaciones}
-                    onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all resize-none"
-                    rows={3}
-                    placeholder="Detalles de la revisión..."
-                  />
-                </div>
+                {/* Observaciones */}
+                <TextField
+                  label="Observaciones"
+                  fullWidth
+                  multiline
+                  rows={3}
+                  value={formData.observaciones}
+                  onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
+                  placeholder="Detalles de la revisión..."
+                />
+              </Box>
+            </DialogContent>
 
-                <button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-200"
-                >
-                  Crear Revisión Técnica
-                </button>
-              </form>
-            </div>
-          )}
+            <DialogActions sx={{ p: 2.5, pt: 1, gap: 1 }}>
+              <Button 
+                onClick={() => setShowForm(false)}
+                variant="outlined"
+                color="inherit"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCreate}
+                variant="contained"
+                color="primary"
+                sx={{ 
+                  px: 3,
+                  fontWeight: 'bold',
+                  background: 'linear-gradient(90deg, #2563eb, #4f46e5)',
+                  '&:hover': {
+                    background: 'linear-gradient(90deg, #1d4ed8, #4338ca)'
+                  }
+                }}
+              >
+                Crear Revisión
+              </Button>
+            </DialogActions>
+          </Dialog>
 
           {/* Lista de revisiones */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vehículo</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resultado</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Oblea</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vencimiento</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+          <TableContainer component={Paper} sx={{ boxShadow: 2 }}>
+            <Table>
+              <TableHead sx={{ bgcolor: 'grey.100' }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Vehículo</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Resultado</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Fecha</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Oblea</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Vencimiento</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Acciones</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
                 {revisiones.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                      No hay revisiones registradas
-                    </td>
-                  </tr>
+                  <TableRow>
+                    <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                      <Typography color="text.secondary">
+                        No hay revisiones registradas
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
                 ) : (
-                  revisiones.map((revision) => (
-                    <tr key={revision.id}>
-                      <td className="px-6 py-4 whitespace-nowrap font-mono text-sm">#{revision.id}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-semibold">{revision.vehiculo?.dominio}</div>
-                        <div className="text-sm text-gray-600">
-                          {revision.vehiculo?.marca} {revision.vehiculo?.modelo}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs rounded-full ${getResultadoBadge(revision.resultado)}`}>
-                          {revision.resultado}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {new Date(revision.fechaRevision).toLocaleDateString('es-AR')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {revision.oblea ? (
-                          <span className="text-green-600 font-semibold">
-                            #{revision.oblea.numero}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">Sin asignar</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {revision.fechaVencimiento
-                          ? new Date(revision.fechaVencimiento).toLocaleDateString('es-AR')
-                          : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {revision.resultado === 'APROBADO' && !revision.oleaId && isPlantaAdmin && (
-                          <button
-                            onClick={() => handleAsignarOblea(revision.id)}
-                            className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-                          >
-                            Asignar Oblea
-                          </button>
-                        )}
-                        {revision.oleaId && isPlantaAdmin && (
-                          <button
-                            onClick={() => handleDescargarCertificado(revision.id)}
-                            className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 ml-2"
-                          >
-                            📄 Certificado
-                          </button>
-                        )}
-                        {revision.observaciones && (
-                          <button
-                            onClick={() => alert(revision.observaciones)}
-                            className="ml-2 text-blue-600 hover:text-blue-900 text-sm"
-                          >
-                            Ver obs.
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))
+                  revisiones.map((revision) => {
+                    const resultadoConfig = getResultadoBadge(revision.resultado);
+                    return (
+                      <TableRow key={revision.id} hover>
+                        <TableCell sx={{ fontFamily: 'monospace' }}>#{revision.id}</TableCell>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight="600">
+                            {revision.vehiculo?.dominio}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {revision.vehiculo?.marca} {revision.vehiculo?.modelo}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={revision.resultado}
+                            color={resultadoConfig.color}
+                            icon={resultadoConfig.icon}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {new Date(revision.fechaRevision).toLocaleDateString('es-AR')}
+                        </TableCell>
+                        <TableCell>
+                          {revision.oblea ? (
+                            <Typography color="success.main" fontWeight="600">
+                              #{revision.oblea.numero}
+                            </Typography>
+                          ) : (
+                            <Typography color="text.disabled">
+                              Sin asignar
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {revision.fechaVencimiento
+                            ? new Date(revision.fechaVencimiento).toLocaleDateString('es-AR')
+                            : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Box display="flex" gap={1}>
+                            {revision.resultado === 'APROBADO' && !revision.oleaId && isPlantaAdmin && (
+                              <Button
+                                onClick={() => handleAsignarOblea(revision.id)}
+                                variant="contained"
+                                size="small"
+                                color="primary"
+                              >
+                                Asignar Oblea
+                              </Button>
+                            )}
+                            {revision.oleaId && isPlantaAdmin && (
+                              <Button
+                                onClick={() => handleDescargarCertificado(revision.id)}
+                                variant="contained"
+                                size="small"
+                                color="success"
+                                startIcon={<Description />}
+                              >
+                                Certificado
+                              </Button>
+                            )}
+                            {revision.observaciones && (
+                              <Button
+                                onClick={() => alert(revision.observaciones)}
+                                variant="text"
+                                size="small"
+                              >
+                                Ver obs.
+                              </Button>
+                            )}
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </TableContainer>
 
-          <div className="mt-4 text-sm text-gray-600">
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
             Total: {revisiones.length} revisión(es)
-          </div>
-        </div>
-      </div>
-    </div>
+          </Typography>
+      </Box>
+    </Box>
   );
 }

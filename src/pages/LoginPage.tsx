@@ -2,11 +2,18 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Card,
+  CardContent,
+  Chip,
+  Alert,
+  Container,
+  InputAdornment,
+} from '@mui/material';
 import { LogIn, Mail, Lock, AlertCircle, Shield, CheckCircle2, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
@@ -85,6 +92,14 @@ export const LoginPage = () => {
     });
   };
 
+  const getRoleColor = (role: string): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
+    if (role === 'CAMARA') return 'primary';
+    if (role === 'PLANTA_ADMIN') return 'secondary';
+    if (role === 'PLANTA_OPERADOR') return 'info';
+    if (role === 'MUNICIPIO') return 'success';
+    return 'default';
+  };
+
   return (
     <>
       <Toaster 
@@ -102,11 +117,25 @@ export const LoginPage = () => {
       />
       
       {/* Background con gradiente animado */}
-      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
+      <Box sx={{ 
+        minHeight: '100vh', 
+        position: 'relative', 
+        overflow: 'hidden',
+        background: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #7c3aed 100%)'
+      }}>
         {/* Elementos decorativos flotantes */}
-        <div className="absolute inset-0 overflow-hidden">
+        <Box sx={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
           <motion.div
-            className="absolute top-20 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl"
+            style={{
+              position: 'absolute',
+              top: '5rem',
+              left: '2.5rem',
+              width: '18rem',
+              height: '18rem',
+              background: 'rgba(255,255,255,0.1)',
+              borderRadius: '50%',
+              filter: 'blur(80px)'
+            }}
             animate={{
               x: [0, 100, 0],
               y: [0, 50, 0],
@@ -118,7 +147,16 @@ export const LoginPage = () => {
             }}
           />
           <motion.div
-            className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"
+            style={{
+              position: 'absolute',
+              bottom: '5rem',
+              right: '2.5rem',
+              width: '24rem',
+              height: '24rem',
+              background: 'rgba(168, 85, 247, 0.2)',
+              borderRadius: '50%',
+              filter: 'blur(80px)'
+            }}
             animate={{
               x: [0, -100, 0],
               y: [0, -80, 0],
@@ -130,7 +168,16 @@ export const LoginPage = () => {
             }}
           />
           <motion.div
-            className="absolute top-1/2 left-1/2 w-64 h-64 bg-indigo-400/10 rounded-full blur-3xl"
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              width: '16rem',
+              height: '16rem',
+              background: 'rgba(129, 140, 248, 0.1)',
+              borderRadius: '50%',
+              filter: 'blur(80px)'
+            }}
             animate={{
               scale: [1, 1.2, 1],
               rotate: [0, 180, 360],
@@ -141,24 +188,45 @@ export const LoginPage = () => {
               ease: "easeInOut",
             }}
           />
-        </div>
+        </Box>
 
         {/* Contenido principal */}
-        <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+        <Container sx={{ position: 'relative', zIndex: 10, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', py: 2 }}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-full max-w-md"
+            style={{ width: '100%', maxWidth: '28rem', position: 'relative' }}
           >
             {/* Efecto de resplandor detrás del card */}
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 via-indigo-400/20 to-purple-400/20 rounded-3xl blur-3xl" />
+            <Box sx={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(90deg, rgba(96,165,250,0.2), rgba(129,140,248,0.2), rgba(168,85,247,0.2))',
+              borderRadius: 6,
+              filter: 'blur(80px)'
+            }} />
             
-            <Card className="relative shadow-2xl border-2 border-white/20 backdrop-blur-xl bg-white/90 overflow-hidden">
+            <Card sx={{ 
+              position: 'relative', 
+              boxShadow: 8, 
+              border: '2px solid rgba(255,255,255,0.2)', 
+              backdropFilter: 'blur(40px)',
+              bgcolor: 'rgba(255,255,255,0.9)',
+              overflow: 'hidden'
+            }}>
               {/* Línea decorativa superior */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600" />
+              <Box sx={{ 
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '6px',
+                background: 'linear-gradient(90deg, #2563eb, #4f46e5, #7c3aed)'
+              }} />
               
-              <CardHeader className="space-y-3 text-center pb-8 pt-10">
+              {/* Header */}
+              <Box sx={{ pt: 5, pb: 4, px: 3, textAlign: 'center' }}>
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -168,14 +236,28 @@ export const LoginPage = () => {
                     damping: 20,
                     delay: 0.1 
                   }}
-                  className="flex justify-center mb-2"
+                  style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}
                 >
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl blur-2xl opacity-60 animate-pulse" />
-                    <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-5 rounded-3xl shadow-xl">
-                      <Shield className="w-14 h-14 text-white drop-shadow-lg" />
-                    </div>
-                  </div>
+                  <Box sx={{ position: 'relative' }}>
+                    <Box sx={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'linear-gradient(90deg, #2563eb, #4f46e5)',
+                      borderRadius: 6,
+                      filter: 'blur(24px)',
+                      opacity: 0.6,
+                      animation: 'pulse 2s ease-in-out infinite'
+                    }} />
+                    <Box sx={{ 
+                      position: 'relative',
+                      background: 'linear-gradient(135deg, #2563eb, #4f46e5, #7c3aed)',
+                      p: 2.5,
+                      borderRadius: 6,
+                      boxShadow: 3
+                    }}>
+                      <Shield style={{ width: '3.5rem', height: '3.5rem', color: 'white', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' }} />
+                    </Box>
+                  </Box>
                 </motion.div>
                 
                 <motion.div
@@ -183,104 +265,154 @@ export const LoginPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <CardTitle className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  <Typography variant="h3" sx={{ 
+                    fontWeight: 'bold',
+                    background: 'linear-gradient(90deg, #2563eb, #4f46e5, #7c3aed)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    mb: 1
+                  }}>
                     Sistema VTV
-                  </CardTitle>
-                  <div className="flex items-center justify-center gap-2 mt-2">
-                    <Sparkles className="w-4 h-4 text-yellow-500" />
-                    <CardDescription className="text-base font-medium">
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 1 }}>
+                    <Sparkles className="w-4 h-4" style={{ color: '#eab308' }} />
+                    <Typography variant="body1" fontWeight="500">
                       Revisión Técnica Vehicular
-                    </CardDescription>
-                    <Sparkles className="w-4 h-4 text-yellow-500" />
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
+                    </Typography>
+                    <Sparkles className="w-4 h-4" style={{ color: '#eab308' }} />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                     Multi-Provincia • Argentina
-                  </p>
+                  </Typography>
                 </motion.div>
-              </CardHeader>
+              </Box>
 
-              <CardContent>
+              <CardContent sx={{ px: 3, pb: 3 }}>
                 <motion.form
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
                   onSubmit={handleSubmit}
-                  className="space-y-4"
+                  style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
                 >
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-semibold flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-primary" />
+                  <Box>
+                    <Typography variant="body2" fontWeight="600" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Mail className="w-4 h-4" style={{ color: '#2563eb' }} />
                       Correo Electrónico
-                    </Label>
-                    <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-xl blur-lg opacity-0 group-focus-within:opacity-100 transition-opacity duration-300" />
-                      <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="relative text-base font-medium"
-                        placeholder="usuario@ejemplo.com"
-                        required
-                      />
-                    </div>
-                  </div>
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="usuario@ejemplo.com"
+                      required
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Mail className="w-5 h-5" style={{ color: '#9ca3af' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          '&:hover': {
+                            boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.1)',
+                          },
+                          '&.Mui-focused': {
+                            boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.2)',
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-semibold flex items-center gap-2">
-                      <Lock className="w-4 h-4 text-primary" />
+                  <Box>
+                    <Typography variant="body2" fontWeight="600" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Lock className="w-4 h-4" style={{ color: '#2563eb' }} />
                       Contraseña
-                    </Label>
-                    <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-xl blur-lg opacity-0 group-focus-within:opacity-100 transition-opacity duration-300" />
-                      <Input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="relative text-base font-medium"
-                        placeholder="••••••••••"
-                        required
-                      />
-                    </div>
-                  </div>
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••••"
+                      required
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Lock className="w-5 h-5" style={{ color: '#9ca3af' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          '&:hover': {
+                            boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.1)',
+                          },
+                          '&.Mui-focused': {
+                            boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.2)',
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
 
                   {error && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center gap-2 bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-lg"
                     >
-                      <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                      <span className="text-sm font-medium">{error}</span>
+                      <Alert severity="error" icon={<AlertCircle className="h-5 w-5" />}>
+                        {error}
+                      </Alert>
                     </motion.div>
                   )}
 
                   <motion.div
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="relative group"
                   >
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-xl blur opacity-60 group-hover:opacity-100 transition duration-300" />
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="relative w-full h-14 text-base font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 shadow-xl"
+                      fullWidth
+                      variant="contained"
+                      size="large"
+                      sx={{ 
+                        height: '56px',
+                        fontWeight: 'bold',
+                        fontSize: '1rem',
+                        background: 'linear-gradient(90deg, #2563eb, #4f46e5, #7c3aed)',
+                        boxShadow: 3,
+                        '&:hover': {
+                          background: 'linear-gradient(90deg, #1d4ed8, #4338ca, #6d28d9)',
+                          boxShadow: 5,
+                        }
+                      }}
                     >
                       {isLoading ? (
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          className="flex items-center gap-3"
-                        >
-                          <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full" />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              border: '3px solid white',
+                              borderTop: '3px solid transparent',
+                              borderRadius: '50%'
+                            }}
+                          />
                           <span>Ingresando...</span>
-                        </motion.div>
+                        </Box>
                       ) : (
-                        <span className="flex items-center gap-3">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                           <LogIn className="h-5 w-5" />
-                          Iniciar Sesión
-                        </span>
+                          <span>Iniciar Sesión</span>
+                        </Box>
                       )}
                     </Button>
                   </motion.div>
@@ -291,68 +423,108 @@ export const LoginPage = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
-                  className="mt-8 pt-6 border-t"
                 >
-                  <div className="flex items-center justify-center gap-2 mb-4">
-                    <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    <p className="text-sm font-semibold text-center">
-                      Credenciales de Prueba
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1 custom-scrollbar">
-                    {testCredentials.map((cred, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.5 + idx * 0.05 }}
-                        whileHover={{ scale: 1.02, x: 4 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="relative group"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 blur-sm" />
-                        <button
-                          type="button"
-                          onClick={() => fillCredentials(cred.email, cred.password)}
-                          className="relative w-full text-left px-4 py-3.5 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm hover:from-white/90 hover:to-white/70 transition-all rounded-xl border-2 border-gray-200/50 hover:border-primary/40 shadow-sm hover:shadow-md"
+                  <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
+                      <CheckCircle2 className="w-4 h-4" style={{ color: '#10b981' }} />
+                      <Typography variant="body2" fontWeight="600" textAlign="center">
+                        Credenciales de Prueba
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ 
+                      maxHeight: '320px', 
+                      overflowY: 'auto', 
+                      pr: 0.5,
+                      '&::-webkit-scrollbar': {
+                        width: '6px',
+                      },
+                      '&::-webkit-scrollbar-track': {
+                        background: '#f1f1f1',
+                        borderRadius: '10px',
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        background: '#888',
+                        borderRadius: '10px',
+                      },
+                      '&::-webkit-scrollbar-thumb:hover': {
+                        background: '#555',
+                      },
+                    }}>
+                      {testCredentials.map((cred, idx) => (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.5 + idx * 0.05 }}
+                          whileHover={{ scale: 1.02, x: 4 }}
+                          whileTap={{ scale: 0.98 }}
+                          style={{ position: 'relative', marginBottom: '0.5rem' }}
                         >
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                              <Badge 
-                                variant={
-                                  cred.role === 'CAMARA' ? 'default' : 
-                                  cred.role === 'PLANTA_ADMIN' ? 'secondary' :
-                                  cred.role === 'PLANTA_OPERADOR' ? 'outline' :
-                                  'outline'
-                                }
-                                className="font-bold text-xs px-3 py-1 shadow-sm"
-                              >
-                                {cred.role}
-                              </Badge>
-                              <div className="flex flex-col">
-                                <span className="text-sm font-bold text-gray-900">
-                                  {cred.provincia}
-                                </span>
-                                <span className="text-xs text-gray-600 group-hover:text-gray-900 transition-colors font-medium">
-                                  {cred.email.split('@')[0]}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-2 group-hover:translate-x-0">
-                              <div className="bg-primary/10 p-2 rounded-lg">
-                                <LogIn className="w-4 h-4 text-primary" />
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      </motion.div>
-                    ))}
-                  </div>
-                  
-                  <p className="text-xs text-center text-muted-foreground mt-4">
-                    Contraseña para todas: <code className="bg-muted px-2 py-1 rounded font-mono">Password123!</code>
-                  </p>
+                          <Box
+                            component="button"
+                            type="button"
+                            onClick={() => fillCredentials(cred.email, cred.password)}
+                            sx={{
+                              position: 'relative',
+                              width: '100%',
+                              textAlign: 'left',
+                              px: 2,
+                              py: 1.75,
+                              background: 'linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.6))',
+                              backdropFilter: 'blur(4px)',
+                              borderRadius: 3,
+                              border: '2px solid rgba(229,231,235,0.5)',
+                              boxShadow: 1,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                              '&:hover': {
+                                background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7))',
+                                borderColor: 'primary.main',
+                                boxShadow: 2,
+                              }
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                <Chip 
+                                  label={cred.role}
+                                  color={getRoleColor(cred.role)}
+                                  size="small"
+                                  sx={{ fontWeight: 'bold', fontSize: '0.7rem' }}
+                                />
+                                <Box>
+                                  <Typography variant="body2" fontWeight="bold" color="text.primary">
+                                    {cred.provincia}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary" sx={{ transition: 'color 0.2s' }}>
+                                    {cred.email.split('@')[0]}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                              <Box sx={{ 
+                                opacity: 0, 
+                                transition: 'all 0.2s',
+                                'button:hover &': {
+                                  opacity: 1,
+                                  transform: 'translateX(0)',
+                                },
+                                transform: 'translateX(8px)'
+                              }}>
+                                <Box sx={{ bgcolor: 'primary.light', p: 1, borderRadius: 2 }}>
+                                  <LogIn className="w-4 h-4" style={{ color: '#2563eb' }} />
+                                </Box>
+                              </Box>
+                            </Box>
+                          </Box>
+                        </motion.div>
+                      ))}
+                    </Box>
+                    
+                    <Typography variant="caption" textAlign="center" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+                      Contraseña para todas: <Box component="code" sx={{ bgcolor: 'grey.100', px: 1, py: 0.5, borderRadius: 1, fontFamily: 'monospace' }}>Password123!</Box>
+                    </Typography>
+                  </Box>
                 </motion.div>
               </CardContent>
             </Card>
@@ -362,16 +534,26 @@ export const LoginPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="text-center mt-6 text-white/80 text-sm"
             >
-              <p className="flex items-center justify-center gap-2">
+              <Typography 
+                variant="body2" 
+                textAlign="center" 
+                sx={{ 
+                  mt: 3, 
+                  color: 'rgba(255,255,255,0.8)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 1
+                }}
+              >
                 <Shield className="w-4 h-4" />
                 Sistema Seguro con Certificados Criptográficos
-              </p>
+              </Typography>
             </motion.div>
           </motion.div>
-        </div>
-      </div>
+        </Container>
+      </Box>
     </>
   );
 };

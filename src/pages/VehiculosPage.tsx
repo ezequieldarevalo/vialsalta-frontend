@@ -2,6 +2,28 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import vehiculosService from '../services/vehiculos.service';
 import type { Vehiculo, CreateVehiculoDto, TipoVehiculo, TipoCombustible } from '../types/vehiculos.types';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+  MenuItem,
+  Alert,
+  CircularProgress,
+} from '@mui/material';
+import { Add, Delete, Search, Clear } from '@mui/icons-material';
 
 export default function VehiculosPage() {
   const { logout } = useAuth();
@@ -9,6 +31,7 @@ export default function VehiculosPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [searchDominio, setSearchDominio] = useState('');
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState<CreateVehiculoDto>({
     dominio: '',
     marca: '',
@@ -28,8 +51,9 @@ export default function VehiculosPage() {
     try {
       const data = await vehiculosService.getAll();
       setVehiculos(data);
-    } catch (error) {
-      console.error('Error al cargar vehículos:', error);
+    } catch (err) {
+      console.error('Error al cargar vehículos:', err);
+      setError('Error al cargar vehículos');
     } finally {
       setLoading(false);
     }
@@ -44,8 +68,10 @@ export default function VehiculosPage() {
     try {
       const vehiculo = await vehiculosService.findByDominio(searchDominio);
       setVehiculos([vehiculo]);
-    } catch (error) {
-      alert('Vehículo no encontrado');
+      setError('');
+    } catch (err) {
+      console.error('Error al buscar vehículo:', err);
+      setError('Vehículo no encontrado');
       loadVehiculos();
     }
   };
@@ -55,7 +81,6 @@ export default function VehiculosPage() {
     
     try {
       await vehiculosService.create(formData);
-      alert('Vehículo creado exitosamente');
       setShowForm(false);
       setFormData({
         dominio: '',
@@ -68,8 +93,10 @@ export default function VehiculosPage() {
         numeroChasis: '',
       });
       loadVehiculos();
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al crear vehículo');
+      setError('');
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setError(errorMsg || 'Error al crear vehículo');
     }
   };
 
@@ -78,263 +105,241 @@ export default function VehiculosPage() {
     
     try {
       await vehiculosService.delete(id);
-      alert('Vehículo eliminado');
       loadVehiculos();
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al eliminar vehículo');
+      setError('');
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setError(errorMsg || 'Error al eliminar vehículo');
     }
   };
 
+  const handleClearSearch = () => {
+    setSearchDominio('');
+    loadVehiculos();
+  };
+
   if (loading) {
-    return <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="text-xl">Cargando...</div>
-    </div>;
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <button
-                onClick={() => window.location.href = '/dashboard'}
-                className="text-gray-600 hover:text-gray-900 mr-4"
-              >
-                ← Volver
-              </button>
-              <h1 className="text-xl font-semibold">Gestión de Vehículos</h1>
-            </div>
-            <div className="flex items-center">
-              <button
-                onClick={logout}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                Cerrar Sesión
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <Box p={3}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" gutterBottom>
+          Gestión de Vehículos
+        </Typography>
+        <Box display="flex" gap={2}>
+          <Button onClick={() => window.location.href = '/dashboard'} variant="outlined">
+            ← Volver
+          </Button>
+          <Button onClick={logout} variant="outlined" color="error">
+            Cerrar Sesión
+          </Button>
+        </Box>
+      </Box>
 
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Búsqueda y botón crear */}
-        <div className="px-4 py-6 sm:px-0">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Buscar por dominio..."
-                value={searchDominio}
-                onChange={(e) => setSearchDominio(e.target.value.toUpperCase())}
-                className="px-4 py-2 border rounded-lg"
-              />
-              <button
-                onClick={handleSearch}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-              >
-                Buscar
-              </button>
-              {searchDominio && (
-                <button
-                  onClick={() => { setSearchDominio(''); loadVehiculos(); }}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
+          {error}
+        </Alert>
+      )}
+
+      <Box mb={3} display="flex" gap={2} alignItems="center">
+        <TextField
+          placeholder="Buscar por dominio..."
+          value={searchDominio}
+          onChange={(e) => setSearchDominio(e.target.value.toUpperCase())}
+          size="small"
+          sx={{ flexGrow: 1, maxWidth: 400 }}
+        />
+        <Button
+          variant="contained"
+          startIcon={<Search />}
+          onClick={handleSearch}
+        >
+          Buscar
+        </Button>
+        {searchDominio && (
+          <Button
+            variant="outlined"
+            startIcon={<Clear />}
+            onClick={handleClearSearch}
+          >
+            Limpiar
+          </Button>
+        )}
+        <Box flexGrow={1} />
+        <Button
+          variant="contained"
+          color="success"
+          startIcon={<Add />}
+          onClick={() => setShowForm(true)}
+        >
+          Nuevo Vehículo
+        </Button>
+      </Box>
+
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Dominio</TableCell>
+              <TableCell>Marca/Modelo</TableCell>
+              <TableCell>Año</TableCell>
+              <TableCell>Tipo</TableCell>
+              <TableCell>Combustible</TableCell>
+              <TableCell align="right">Acciones</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {vehiculos.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  No hay vehículos registrados
+                </TableCell>
+              </TableRow>
+            ) : (
+              vehiculos.map((vehiculo) => (
+                <TableRow key={vehiculo.id} hover>
+                  <TableCell>
+                    <Typography variant="body2" fontWeight="bold">
+                      {vehiculo.dominio}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>{vehiculo.marca} {vehiculo.modelo}</TableCell>
+                  <TableCell>{vehiculo.anio}</TableCell>
+                  <TableCell>{vehiculo.tipo}</TableCell>
+                  <TableCell>{vehiculo.combustible}</TableCell>
+                  <TableCell align="right">
+                    <IconButton
+                      onClick={() => handleDelete(vehiculo.id)}
+                      size="small"
+                      color="error"
+                    >
+                      <Delete />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Box mt={2}>
+        <Typography variant="body2" color="textSecondary">
+          Total: {vehiculos.length} vehículo(s)
+        </Typography>
+      </Box>
+
+      {/* Formulario Modal */}
+      <Dialog open={showForm} onClose={() => setShowForm(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Nuevo Vehículo</DialogTitle>
+        <form onSubmit={handleCreate}>
+          <DialogContent>
+            <Box display="flex" flexDirection="column" gap={2}>
+              <Box display="flex" gap={2}>
+                <TextField
+                  label="Dominio / Patente"
+                  required
+                  fullWidth
+                  value={formData.dominio}
+                  onChange={(e) => setFormData({ ...formData, dominio: e.target.value.toUpperCase() })}
+                  inputProps={{ maxLength: 10 }}
+                  placeholder="ABC123"
+                />
+                <TextField
+                  label="Marca"
+                  required
+                  fullWidth
+                  value={formData.marca}
+                  onChange={(e) => setFormData({ ...formData, marca: e.target.value })}
+                  placeholder="Toyota"
+                />
+              </Box>
+              
+              <Box display="flex" gap={2}>
+                <TextField
+                  label="Modelo"
+                  required
+                  fullWidth
+                  value={formData.modelo}
+                  onChange={(e) => setFormData({ ...formData, modelo: e.target.value })}
+                  placeholder="Corolla"
+                />
+                <TextField
+                  label="Año"
+                  type="number"
+                  required
+                  fullWidth
+                  value={formData.anio}
+                  onChange={(e) => setFormData({ ...formData, anio: parseInt(e.target.value) })}
+                  inputProps={{ min: 1900, max: new Date().getFullYear() + 1 }}
+                />
+              </Box>
+              
+              <Box display="flex" gap={2}>
+                <TextField
+                  label="Tipo de Vehículo"
+                  select
+                  required
+                  fullWidth
+                  value={formData.tipo}
+                  onChange={(e) => setFormData({ ...formData, tipo: e.target.value as TipoVehiculo })}
                 >
-                  Limpiar
-                </button>
-              )}
-            </div>
-            
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
-            >
-              {showForm ? 'Cancelar' : '+ Nuevo Vehículo'}
-            </button>
-          </div>
-
-          {/* Formulario */}
-          {showForm && (
-            <div className="bg-white p-6 rounded-lg shadow mb-6">
-              <h2 className="text-lg font-semibold mb-4">Nuevo Vehículo</h2>
-              <form onSubmit={handleCreate} className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Dominio / Patente *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={10}
-                    value={formData.dominio}
-                    onChange={(e) => setFormData({ ...formData, dominio: e.target.value.toUpperCase() })}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    placeholder="ABC123"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Marca *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.marca}
-                    onChange={(e) => setFormData({ ...formData, marca: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    placeholder="Toyota"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Modelo *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.modelo}
-                    onChange={(e) => setFormData({ ...formData, modelo: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    placeholder="Corolla"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Año *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min={1900}
-                    max={new Date().getFullYear() + 1}
-                    value={formData.anio}
-                    onChange={(e) => setFormData({ ...formData, anio: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tipo de Vehículo *
-                  </label>
-                  <select
-                    value={formData.tipo}
-                    onChange={(e) => setFormData({ ...formData, tipo: e.target.value as TipoVehiculo })}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  >
-                    <option value="AUTOMOVIL">Automóvil</option>
-                    <option value="CAMIONETA">Camioneta</option>
-                    <option value="CAMION">Camión</option>
-                    <option value="MOTO">Moto</option>
-                    <option value="COLECTIVO">Colectivo</option>
-                    <option value="OTRO">Otro</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Combustible *
-                  </label>
-                  <select
-                    value={formData.combustible}
-                    onChange={(e) => setFormData({ ...formData, combustible: e.target.value as TipoCombustible })}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  >
-                    <option value="NAFTA">Nafta</option>
-                    <option value="DIESEL">Diesel</option>
-                    <option value="GNC">GNC</option>
-                    <option value="ELECTRICO">Eléctrico</option>
-                    <option value="HIBRIDO">Híbrido</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Número de Motor
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.numeroMotor}
-                    onChange={(e) => setFormData({ ...formData, numeroMotor: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Número de Chasis
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.numeroChasis}
-                    onChange={(e) => setFormData({ ...formData, numeroChasis: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                </div>
-
-                <div className="col-span-2">
-                  <button
-                    type="submit"
-                    className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600"
-                  >
-                    Crear Vehículo
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* Lista de vehículos */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dominio</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Marca/Modelo</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Año</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Combustible</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {vehiculos.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                      No hay vehículos registrados
-                    </td>
-                  </tr>
-                ) : (
-                  vehiculos.map((vehiculo) => (
-                    <tr key={vehiculo.id}>
-                      <td className="px-6 py-4 whitespace-nowrap font-semibold">{vehiculo.dominio}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{vehiculo.marca} {vehiculo.modelo}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{vehiculo.anio}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{vehiculo.tipo}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{vehiculo.combustible}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => handleDelete(vehiculo.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-4 text-sm text-gray-600">
-            Total: {vehiculos.length} vehículo(s)
-          </div>
-        </div>
-      </div>
-    </div>
+                  <MenuItem value="AUTOMOVIL">Automóvil</MenuItem>
+                  <MenuItem value="CAMIONETA">Camioneta</MenuItem>
+                  <MenuItem value="CAMION">Camión</MenuItem>
+                  <MenuItem value="MOTO">Moto</MenuItem>
+                  <MenuItem value="COLECTIVO">Colectivo</MenuItem>
+                  <MenuItem value="OTRO">Otro</MenuItem>
+                </TextField>
+                <TextField
+                  label="Combustible"
+                  select
+                  required
+                  fullWidth
+                  value={formData.combustible}
+                  onChange={(e) => setFormData({ ...formData, combustible: e.target.value as TipoCombustible })}
+                >
+                  <MenuItem value="NAFTA">Nafta</MenuItem>
+                  <MenuItem value="DIESEL">Diesel</MenuItem>
+                  <MenuItem value="GNC">GNC</MenuItem>
+                  <MenuItem value="ELECTRICO">Eléctrico</MenuItem>
+                  <MenuItem value="HIBRIDO">Híbrido</MenuItem>
+                </TextField>
+              </Box>
+              
+              <Box display="flex" gap={2}>
+                <TextField
+                  label="Número de Motor"
+                  fullWidth
+                  value={formData.numeroMotor}
+                  onChange={(e) => setFormData({ ...formData, numeroMotor: e.target.value })}
+                />
+                <TextField
+                  label="Número de Chasis"
+                  fullWidth
+                  value={formData.numeroChasis}
+                  onChange={(e) => setFormData({ ...formData, numeroChasis: e.target.value })}
+                />
+              </Box>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowForm(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="contained" color="success">
+              Crear Vehículo
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+    </Box>
   );
 }
