@@ -6,6 +6,9 @@ import { DashboardPage } from './pages/DashboardPage';
 import { BloquesPage } from './pages/BloquesPage';
 import VerificarPage from './pages/VerificarPage';
 import { UserRole } from './types/auth.types';
+import PlantasPage from './pages/PlantasPage';
+import MunicipiosPage from './pages/MunicipiosPage';
+import UsersPage from './pages/UsersPage';
 import RevisionesPage from './pages/RevisionesPage';
 import VehiculosPage from './pages/VehiculosPage';
 
@@ -48,9 +51,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          {/* Rutas de plantas, municipios y usuarios (deberían tener sus propios componentes y rutas) */}
-          {/* Ejemplo para plantas: */}
-          {/*
           <Route
             path="/plantas"
             element={
@@ -59,7 +59,22 @@ function App() {
               </ProtectedRoute>
             }
           />
-          */}
+           <Route
+             path="/municipios"
+             element={
+               <ProtectedRoute allowedRoles={[UserRole.CAMARA]}>
+                 <MunicipiosPage />
+               </ProtectedRoute>
+             }
+           />
+          <Route
+            path="/usuarios"
+            element={
+              <ProtectedRoute allowedRoles={[UserRole.CAMARA]}>
+                <UsersPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/verificar/:codigoQr?" element={<VerificarPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
