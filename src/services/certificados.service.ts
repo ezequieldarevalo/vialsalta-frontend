@@ -22,6 +22,7 @@ export interface VerificacionCertificado {
     marca: string;
     modelo: string;
     anio: number;
+    fotoUrl?: string;
   };
   revision: {
     fecha: Date;

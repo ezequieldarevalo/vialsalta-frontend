@@ -34,6 +34,7 @@ export interface Vehiculo {
   fechaPrimeraMatriculacion?: string | null; // Fecha de primera inscripción del vehículo
   tipoVehiculoId?: number; // Relación con TipoVehiculoConfig
   tipoVehiculo?: TipoVehiculoConfig; // Objeto completo del tipo
+  fotoUrl?: string; // URL de la foto del vehículo
   createdAt: string;
   updatedAt: string;
 }
@@ -49,6 +50,7 @@ export interface CreateVehiculoDto {
   numeroChasis?: string;
   fechaPrimeraMatriculacion?: string | null;
   tipoVehiculoId?: number; // ID del tipo de vehículo configurado por CAMARA
+  fotoUrl?: string; // URL de la foto del vehículo
 }
 
 export type UpdateVehiculoDto = Partial<CreateVehiculoDto>;

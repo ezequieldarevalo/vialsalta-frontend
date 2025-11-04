@@ -245,29 +245,87 @@ export default function VerificarPage() {
                   </Typography>
                 </Box>
                 <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Typography variant="caption" color="text.secondary">
-                      Dominio / Patente
-                    </Typography>
-                    <Typography variant="h5" fontWeight="bold" color="primary">
-                      {resultado.vehiculo.dominio}
-                    </Typography>
+                  {/* Foto del vehículo (o placeholder) */}
+                  <Grid item xs={12} md={4}>
+                    {resultado.vehiculo.fotoUrl ? (
+                      <>
+                        <Box
+                          component="img"
+                          src={resultado.vehiculo.fotoUrl}
+                          alt={`Vehículo ${resultado.vehiculo.dominio}`}
+                          sx={{
+                            width: '100%',
+                            height: 'auto',
+                            maxHeight: 250,
+                            objectFit: 'cover',
+                            borderRadius: 2,
+                            border: 2,
+                            borderColor: 'primary.light',
+                            boxShadow: 2,
+                          }}
+                        />
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          display="block"
+                          textAlign="center"
+                          mt={1}
+                        >
+                          Foto del vehículo registrado
+                        </Typography>
+                      </>
+                    ) : (
+                      <Box
+                        sx={{
+                          width: '100%',
+                          height: 250,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'grey.100',
+                          borderRadius: 2,
+                          border: 2,
+                          borderColor: 'grey.300',
+                          borderStyle: 'dashed',
+                        }}
+                      >
+                        <DirectionsCar sx={{ fontSize: 80, color: 'grey.400', mb: 2 }} />
+                        <Typography variant="body2" color="text.secondary" fontWeight="500">
+                          Sin foto registrada
+                        </Typography>
+                      </Box>
+                    )}
                   </Grid>
-                  <Grid item xs={12} sm={8}>
-                    <Typography variant="caption" color="text.secondary">
-                      Marca y Modelo
-                    </Typography>
-                    <Typography variant="body1" fontWeight="bold">
-                      {resultado.vehiculo.marca} {resultado.vehiculo.modelo}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <Typography variant="caption" color="text.secondary">
-                      Año
-                    </Typography>
-                    <Typography variant="body1" fontWeight="bold">
-                      {resultado.vehiculo.anio}
-                    </Typography>
+                  
+                  {/* Datos del vehículo */}
+                  <Grid item xs={12} md={8}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <Typography variant="caption" color="text.secondary">
+                          Dominio / Patente
+                        </Typography>
+                        <Typography variant="h5" fontWeight="bold" color="primary">
+                          {resultado.vehiculo.dominio}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={8}>
+                        <Typography variant="caption" color="text.secondary">
+                          Marca y Modelo
+                        </Typography>
+                        <Typography variant="body1" fontWeight="bold">
+                          {resultado.vehiculo.marca} {resultado.vehiculo.modelo}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="caption" color="text.secondary">
+                          Año
+                        </Typography>
+                        <Typography variant="body1" fontWeight="bold">
+                          {resultado.vehiculo.anio}
+                        </Typography>
+                      </Grid>
+                    </Grid>
                   </Grid>
                 </Grid>
               </CardContent>

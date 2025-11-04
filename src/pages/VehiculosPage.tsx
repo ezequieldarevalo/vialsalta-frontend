@@ -5,6 +5,7 @@ import tiposVehiculoService from '../services/tipos-vehiculo.service';
 import type { Vehiculo, CreateVehiculoDto, TipoCombustible } from '../types/vehiculos.types';
 import type { TipoVehiculoConfig } from '../types/tipos-vehiculo.types';
 import { UserRole } from '../types/auth.types';
+import { ImageUploader } from '../components/ImageUploader';
 import {
   Box,
   Button,
@@ -53,6 +54,7 @@ export default function VehiculosPage() {
     fechaPrimeraMatriculacion: null,
     tipoVehiculoId: undefined,
   });
+  const [fotoUrl, setFotoUrl] = useState<string>('');
 
   useEffect(() => {
     loadVehiculos();
@@ -106,6 +108,7 @@ export default function VehiculosPage() {
       const dataToSend = {
         ...formData,
         fechaPrimeraMatriculacion: fechaMatriculacion ? fechaMatriculacion.toISOString() : null,
+        fotoUrl: fotoUrl || undefined,
       };
 
       if (editingVehiculo) {
@@ -128,6 +131,7 @@ export default function VehiculosPage() {
         tipoVehiculoId: undefined,
       });
       setFechaMatriculacion(null);
+      setFotoUrl('');
       loadVehiculos();
       setError('');
     } catch (err: unknown) {
@@ -156,6 +160,8 @@ export default function VehiculosPage() {
     });
     // Convertir fecha string a dayjs si existe
     setFechaMatriculacion(vehiculo.fechaPrimeraMatriculacion ? dayjs(vehiculo.fechaPrimeraMatriculacion) : null);
+    // Cargar foto si existe
+    setFotoUrl(vehiculo.fotoUrl || '');
     setShowForm(true);
   };
 
@@ -173,6 +179,7 @@ export default function VehiculosPage() {
       tipoVehiculoId: undefined,
     });
     setFechaMatriculacion(null);
+    setFotoUrl('');
     setError('');
   };
 
@@ -399,6 +406,19 @@ export default function VehiculosPage() {
                   </MenuItem>
                 ))}
               </TextField>
+
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>
+                  Foto del Vehículo
+                </Typography>
+                <ImageUploader
+                  onUploadSuccess={(url) => setFotoUrl(url)}
+                  onUploadError={(error) => setError(error)}
+                  currentImageUrl={fotoUrl}
+                  label="Subir foto del vehículo"
+                  maxSizeMB={5}
+                />
+              </Box>
               
               <Box display="flex" gap={2}>
                 <TextField
