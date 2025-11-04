@@ -34,6 +34,7 @@ export interface Oblea {
   revisionId: number | null;
   numero: number;
   codigoQr: string | null;
+  qrActivo: boolean;
   estado: EstadoOblea;
   createdAt: string;
   fechaEmision: string | null;

@@ -23,7 +23,8 @@ import {
   CreditCard,
   Shield,
   LogOut,
-  Sparkles
+  Sparkles,
+  Settings
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -99,6 +100,13 @@ export const DashboardPage = () => {
                 color="#ec4899"
                 onClick={() => navigate('/usuarios')}
               />
+              <DashboardCard
+                title="Tipos de Vehículos"
+                description="Configurar tipos de vehículos del sistema"
+                icon={Settings}
+                color="#f97316"
+                onClick={() => navigate('/tipos-vehiculo')}
+              />
             </Box>
           </Box>
         );
@@ -123,16 +131,11 @@ export const DashboardPage = () => {
                 onClick={() => navigate('/revisiones')}
               />
               <DashboardCard
-                title="Certificados"
-                description="Ver y descargar certificados emitidos"
-                icon={FileText}
-                color="#eab308"
-              />
-              <DashboardCard
                 title="Estadísticas"
-                description="Ver rendimiento de la planta"
+                description="Métricas y rendimiento de la planta"
                 icon={BarChart3}
                 color="#ec4899"
+                onClick={() => navigate('/estadisticas')}
               />
             </Box>
           </Box>

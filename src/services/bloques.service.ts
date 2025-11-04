@@ -40,4 +40,24 @@ export const bloquesService = {
   async delete(id: number): Promise<void> {
     await apiClient.delete(`/bloques/${id}`);
   },
+
+  /**
+   * Descarga CSV con el detalle de obleas de un bloque
+   * Incluye: número de oblea, código QR, estado, etc.
+   */
+  async descargarCSV(bloqueId: number): Promise<void> {
+    const response = await apiClient.get(`/bloques/${bloqueId}/csv`, {
+      responseType: 'blob',
+    });
+    
+    // Crear un enlace temporal para descargar el archivo
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `obleas-bloque-${bloqueId}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
 };

@@ -1,21 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Container,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  CircularProgress,
+  Alert,
+  AlertTitle,
+  Grid,
+  Chip,
+  Divider,
+  Card,
+  CardContent,
+  Stack,
+} from '@mui/material';
+import {
+  CheckCircle,
+  Cancel,
+  Warning,
+  Search,
+  DirectionsCar,
+  CalendarToday,
+  Article,
+  Business,
+  LocationOn,
+  QrCode,
+  ArrowBack,
+} from '@mui/icons-material';
 import certificadosService from '../services/certificados.service';
 import type { VerificacionCertificado } from '../services/certificados.service';
-import { 
-  Shield, 
-  Search, 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
-  Car,
-  Calendar,
-  FileText,
-  Building,
-  MapPin,
-  ArrowLeft
-} from 'lucide-react';
-import { motion } from 'framer-motion';
 
 export default function VerificarPage() {
   const { codigoQr } = useParams<{ codigoQr?: string }>();
@@ -43,275 +59,318 @@ export default function VerificarPage() {
   };
 
   // Auto-verificar si viene código QR en la URL
-  useState(() => {
+  useEffect(() => {
     if (codigoQr) {
       const fakeEvent = {
         preventDefault: () => {},
       } as React.FormEvent;
       handleVerificar(fakeEvent);
     }
-  });
+  }, [codigoQr]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const esCondicional = resultado?.revision?.resultado === 'CONDICIONAL';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Header mejorado */}
-      <nav className="bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors font-medium"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                Volver
-              </button>
-              <div className="h-6 w-px bg-gray-300" />
-              <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-2 rounded-xl shadow-lg">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  Verificación de Certificado
-                </h1>
-                <p className="text-xs text-gray-500">Sistema VTV</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
+      {/* Header */}
+      <Paper elevation={3} sx={{ mb: 4, borderRadius: 0 }}>
+        <Container maxWidth="lg">
+          <Box sx={{ py: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Button
+              startIcon={<ArrowBack />}
+              onClick={() => navigate('/')}
+              variant="text"
+              color="primary"
+            >
+              Volver
+            </Button>
+            <Divider orientation="vertical" flexItem />
+            <QrCode color="primary" sx={{ fontSize: 40 }} />
+            <Box>
+              <Typography variant="h5" fontWeight="bold" color="primary">
+                Verificación de Certificado
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Sistema de Revisión Técnica Vehicular
+              </Typography>
+            </Box>
+          </Box>
+        </Container>
+      </Paper>
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-8"
-          >
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 border-2 border-white/50">
-              <div className="flex justify-center mb-4">
-                <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-4 rounded-2xl shadow-lg">
-                  <Search className="w-12 h-12 text-white" />
-                </div>
-              </div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                Verificación de Certificado RTV
-              </h1>
-              <p className="text-gray-600 font-medium">
-                Ingrese el código QR para verificar la autenticidad del certificado
-              </p>
-            </div>
-          </motion.div>
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        {/* Título */}
+        <Paper elevation={2} sx={{ p: 4, mb: 4, textAlign: 'center' }}>
+          <Search color="primary" sx={{ fontSize: 60, mb: 2 }} />
+          <Typography variant="h4" fontWeight="bold" gutterBottom>
+            Verificación de Certificado RTV
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Ingrese el código QR para verificar la autenticidad del certificado
+          </Typography>
+        </Paper>
 
-          {/* Formulario de búsqueda */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 mb-6 border-2 border-white/50"
-          >
-            <form onSubmit={handleVerificar}>
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Código QR del Certificado
-                </label>
-                <input
-                  type="text"
-                  value={codigo}
-                  onChange={(e) => setCodigo(e.target.value)}
-                  placeholder="Ejemplo: QR-12345-1234567890-1"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-                  required
-                />
-              </div>
-              <button
+        {/* Formulario */}
+        <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+          <form onSubmit={handleVerificar}>
+            <Stack spacing={2}>
+              <TextField
+                fullWidth
+                label="Código QR del Certificado"
+                placeholder="Ejemplo: QR-12345-1234567890-1 o COND-1-1234567890"
+                value={codigo}
+                onChange={(e) => setCodigo(e.target.value)}
+                required
+                variant="outlined"
+                InputProps={{
+                  startAdornment: <QrCode sx={{ mr: 1, color: 'action.active' }} />,
+                }}
+              />
+              <Button
                 type="submit"
+                variant="contained"
+                size="large"
+                fullWidth
                 disabled={loading || !codigo}
-                className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white py-4 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                startIcon={loading ? <CircularProgress size={20} /> : <Search />}
               >
-                {loading ? (
-                  <>
-                    <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin" />
-                    Verificando...
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-5 h-5" />
-                    Verificar Certificado
-                  </>
-                )}
-              </button>
-            </form>
-          </motion.div>
+                {loading ? 'Verificando...' : 'Verificar Certificado'}
+              </Button>
+            </Stack>
+          </form>
+        </Paper>
 
-          {/* Error */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 mb-6 shadow-lg"
-            >
-              <div className="flex items-center gap-4">
-                <div className="bg-red-100 p-3 rounded-xl">
-                  <XCircle className="w-8 h-8 text-red-600" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-red-800 text-lg">Error de Verificación</h3>
-                  <p className="text-red-700">{error}</p>
-                </div>
-              </div>
-            </motion.div>
-          )}
+        {/* Error */}
+        {error && (
+          <Alert severity="error" icon={<Cancel />} sx={{ mb: 4 }}>
+            <AlertTitle>Error de Verificación</AlertTitle>
+            {error}
+          </Alert>
+        )}
 
-          {/* Resultado Válido */}
-          {resultado && resultado.valido && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-400 rounded-2xl p-8 shadow-2xl"
-            >
-              <div className="flex items-center mb-6">
-                <div className="bg-green-500 p-4 rounded-2xl shadow-lg mr-4">
-                  <CheckCircle className="w-12 h-12 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-3xl font-bold text-green-800">Certificado Válido</h2>
-                  <p className="text-green-700 font-medium">Este certificado es auténtico y está vigente</p>
-                </div>
-              </div>
+        {/* Resultado Válido */}
+        {resultado && resultado.valido && (
+          <Paper
+            elevation={3}
+            sx={{
+              p: 4,
+              bgcolor: esCondicional ? 'warning.lighter' : 'success.lighter',
+              border: 2,
+              borderColor: esCondicional ? 'warning.main' : 'success.main',
+            }}
+          >
+            {/* Header del Resultado */}
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+              {esCondicional ? (
+                <Warning sx={{ fontSize: 50, color: 'warning.main', mr: 2 }} />
+              ) : (
+                <CheckCircle sx={{ fontSize: 50, color: 'success.main', mr: 2 }} />
+              )}
+              <Box>
+                <Typography variant="h4" fontWeight="bold" color={esCondicional ? 'warning.dark' : 'success.dark'}>
+                  {esCondicional ? 'Certificado Temporal' : 'Certificado Válido'}
+                </Typography>
+                <Typography variant="body1" color={esCondicional ? 'warning.dark' : 'success.dark'}>
+                  {esCondicional
+                    ? 'Revisión CONDICIONAL - Válido por 60 días'
+                    : 'Este certificado es auténtico y está vigente'}
+                </Typography>
+              </Box>
+            </Box>
 
-              {/* Información del Certificado */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 mb-4 border border-green-200">
-                <div className="flex items-center gap-2 mb-4">
-                  <FileText className="w-5 h-5 text-green-600" />
-                  <h3 className="font-bold text-gray-800 text-lg">Información del Certificado</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <p className="text-xs text-gray-600 mb-1">Número de Certificado</p>
-                    <p className="font-bold text-gray-900">{resultado.certificado.numero}</p>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-green-600" />
-                      <div>
-                        <p className="text-xs text-gray-600">Fecha de Emisión</p>
-                        <p className="font-bold text-gray-900 text-sm">
-                          {new Date(resultado.certificado.fechaEmision).toLocaleDateString('es-AR')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-green-600" />
-                      <div>
-                        <p className="text-xs text-gray-600">Vencimiento</p>
-                        <p className="font-bold text-gray-900 text-sm">
-                          {new Date(resultado.certificado.fechaVencimiento).toLocaleDateString('es-AR')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <p className="text-xs text-gray-600 mb-1">Estado</p>
-                    <p className="font-bold text-green-600 flex items-center gap-1">
-                      <CheckCircle className="w-4 h-4" />
-                      VIGENTE
-                    </p>
-                  </div>
-                </div>
-              </div>
+            {/* Información del Certificado */}
+            <Card sx={{ mb: 2 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Article sx={{ mr: 1, color: 'primary.main' }} />
+                  <Typography variant="h6" fontWeight="bold">
+                    Información del Certificado
+                  </Typography>
+                </Box>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      Número de Certificado
+                    </Typography>
+                    <Typography variant="body1" fontWeight="bold">
+                      {resultado.certificado.numero}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      Fecha de Emisión
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <CalendarToday fontSize="small" color="action" />
+                      <Typography variant="body1" fontWeight="bold">
+                        {new Date(resultado.certificado.fechaEmision).toLocaleDateString('es-AR')}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      Fecha de Vencimiento
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <CalendarToday fontSize="small" color="action" />
+                      <Typography variant="body1" fontWeight="bold">
+                        {new Date(resultado.certificado.fechaVencimiento).toLocaleDateString('es-AR')}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      Estado
+                    </Typography>
+                    <Box>
+                      <Chip
+                        icon={<CheckCircle />}
+                        label="VIGENTE"
+                        color={esCondicional ? 'warning' : 'success'}
+                        size="small"
+                      />
+                    </Box>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
 
-              {/* Información del Vehículo */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 mb-4 border border-green-200">
-                <div className="flex items-center gap-2 mb-4">
-                  <Car className="w-5 h-5 text-green-600" />
-                  <h3 className="font-bold text-gray-800 text-lg">Datos del Vehículo</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-green-50 p-3 rounded-lg col-span-2">
-                    <p className="text-xs text-gray-600 mb-1">Dominio / Patente</p>
-                    <p className="font-bold text-gray-900 text-2xl">{resultado.vehiculo.dominio}</p>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <p className="text-xs text-gray-600 mb-1">Marca y Modelo</p>
-                    <p className="font-bold text-gray-900">
+            {/* Información del Vehículo */}
+            <Card sx={{ mb: 2 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <DirectionsCar sx={{ mr: 1, color: 'primary.main' }} />
+                  <Typography variant="h6" fontWeight="bold">
+                    Datos del Vehículo
+                  </Typography>
+                </Box>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography variant="caption" color="text.secondary">
+                      Dominio / Patente
+                    </Typography>
+                    <Typography variant="h5" fontWeight="bold" color="primary">
+                      {resultado.vehiculo.dominio}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={8}>
+                    <Typography variant="caption" color="text.secondary">
+                      Marca y Modelo
+                    </Typography>
+                    <Typography variant="body1" fontWeight="bold">
                       {resultado.vehiculo.marca} {resultado.vehiculo.modelo}
-                    </p>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <p className="text-xs text-gray-600 mb-1">Año</p>
-                    <p className="font-bold text-gray-900">{resultado.vehiculo.anio}</p>
-                  </div>
-                </div>
-              </div>
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <Typography variant="caption" color="text.secondary">
+                      Año
+                    </Typography>
+                    <Typography variant="body1" fontWeight="bold">
+                      {resultado.vehiculo.anio}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
 
-              {/* Información de la Revisión */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-green-200">
-                <div className="flex items-center gap-2 mb-4">
-                  <Building className="w-5 h-5 text-green-600" />
-                  <h3 className="font-bold text-gray-800 text-lg">Datos de la Revisión</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <p className="text-xs text-gray-600 mb-1">Fecha de Revisión</p>
-                    <p className="font-bold text-gray-900">
+            {/* Información de la Revisión */}
+            <Card sx={{ mb: 2 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Business sx={{ mr: 1, color: 'primary.main' }} />
+                  <Typography variant="h6" fontWeight="bold">
+                    Datos de la Revisión
+                  </Typography>
+                </Box>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      Fecha de Revisión
+                    </Typography>
+                    <Typography variant="body1" fontWeight="bold">
                       {new Date(resultado.revision.fecha).toLocaleDateString('es-AR')}
-                    </p>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <p className="text-xs text-gray-600 mb-1">Resultado</p>
-                    <p className="font-bold text-green-600 flex items-center gap-1">
-                      <CheckCircle className="w-4 h-4" />
-                      {resultado.revision.resultado}
-                    </p>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <p className="text-xs text-gray-600 mb-1">Planta de Revisión</p>
-                    <p className="font-bold text-gray-900">{resultado.revision.planta}</p>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-green-600" />
-                      <div>
-                        <p className="text-xs text-gray-600">Provincia</p>
-                        <p className="font-bold text-gray-900">{resultado.revision.provincia}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded-lg col-span-2">
-                    <p className="text-xs text-gray-600 mb-1">Número de Oblea</p>
-                    <p className="font-bold text-gray-900 text-lg">#{resultado.oblea.numero}</p>
-                  </div>
-                </div>
-              </div>
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      Resultado
+                    </Typography>
+                    <Box>
+                      <Chip
+                        icon={esCondicional ? <Warning /> : <CheckCircle />}
+                        label={resultado.revision.resultado}
+                        color={esCondicional ? 'warning' : 'success'}
+                        size="small"
+                      />
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      Planta de Revisión
+                    </Typography>
+                    <Typography variant="body1" fontWeight="bold">
+                      {resultado.revision.planta}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">
+                      Provincia
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <LocationOn fontSize="small" color="action" />
+                      <Typography variant="body1" fontWeight="bold">
+                        {resultado.revision.provincia}
+                      </Typography>
+                    </Box>
+                  </Grid>
 
-              {/* Advertencia */}
-              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 mt-4 flex items-start gap-3">
-                <AlertTriangle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-yellow-800 font-medium">
-                  Este certificado es válido únicamente con la oblea física adherida al parabrisas del vehículo.
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </div>
+                  {/* Oblea o mensaje de certificado temporal */}
+                  {resultado.oblea ? (
+                    <Grid item xs={12}>
+                      <Typography variant="caption" color="text.secondary">
+                        Número de Oblea
+                      </Typography>
+                      <Typography variant="h6" fontWeight="bold" color="primary">
+                        #{resultado.oblea.numero}
+                      </Typography>
+                    </Grid>
+                  ) : (
+                    <Grid item xs={12}>
+                      <Alert severity="warning" icon={<Warning />}>
+                        <AlertTitle>CERTIFICADO TEMPORAL</AlertTitle>
+                        Sin oblea asignada - Válido por 60 días
+                      </Alert>
+                    </Grid>
+                  )}
+                </Grid>
+              </CardContent>
+            </Card>
+
+            {/* Advertencia */}
+            <Alert
+              severity={esCondicional ? 'warning' : 'info'}
+              icon={<Warning />}
+            >
+              <AlertTitle>
+                {esCondicional ? 'CERTIFICADO TEMPORAL - 60 DÍAS' : 'IMPORTANTE'}
+              </AlertTitle>
+              {esCondicional
+                ? 'Este es un certificado temporal por revisión CONDICIONAL. El vehículo debe corregir los defectos y realizar una nueva revisión antes del vencimiento para obtener la aprobación definitiva y oblea física.'
+                : 'Este certificado es válido únicamente con la oblea física adherida al parabrisas del vehículo.'}
+            </Alert>
+          </Paper>
+        )}
 
         {/* Footer */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-center mt-8 text-gray-600"
-        >
-          <p className="font-medium">Sistema de Revisión Técnica Vehicular</p>
-          <p className="text-sm">Esta verificación es pública y no requiere autenticación</p>
-        </motion.div>
-      </div>
-    </div>
+        <Box sx={{ mt: 4, textAlign: 'center' }}>
+          <Typography variant="body2" color="text.secondary" fontWeight="500">
+            Sistema de Revisión Técnica Vehicular
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Esta verificación es pública y no requiere autenticación
+          </Typography>
+        </Box>
+      </Container>
+    </Box>
   );
 }

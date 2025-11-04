@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useSnackbar } from '../context/SnackbarContext';
 import { bloquesService } from '../services/bloques.service';
 import { plantasService } from '../services/plantas.service';
 import type { BloqueObleas, EstadoBloque, Planta } from '../types/bloques.types';
@@ -31,6 +32,7 @@ import { Add } from '@mui/icons-material';
 
 export const BloquesPage = () => {
   const { user, logout } = useAuth();
+  const { error: showError } = useSnackbar();
   const [bloques, setBloques] = useState<BloqueObleas[]>([]);
   const [plantas, setPlantas] = useState<Planta[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,6 +102,16 @@ export const BloquesPage = () => {
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       setError(error.response?.data?.message || 'Error al asignar el bloque');
+    }
+  };
+
+  const handleDescargarCSV = async (bloqueId: number) => {
+    try {
+      await bloquesService.descargarCSV(bloqueId);
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Error al descargar CSV');
+      showError('Error al descargar el archivo CSV');
     }
   };
 
@@ -218,6 +230,15 @@ export const BloquesPage = () => {
                       Asignar
                     </Button>
                   )}
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="success"
+                    onClick={() => handleDescargarCSV(bloque.id)}
+                    sx={{ mr: 1 }}
+                  >
+                    📥 CSV
+                  </Button>
                   <Button
                     size="small"
                     href={`/bloques/${bloque.id}`}

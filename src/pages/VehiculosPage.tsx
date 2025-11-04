@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import vehiculosService from '../services/vehiculos.service';
-import type { Vehiculo, CreateVehiculoDto, TipoVehiculo, TipoCombustible } from '../types/vehiculos.types';
+import tiposVehiculoService from '../services/tipos-vehiculo.service';
+import type { Vehiculo, CreateVehiculoDto, TipoCombustible } from '../types/vehiculos.types';
+import type { TipoVehiculoConfig } from '../types/tipos-vehiculo.types';
+import { UserRole } from '../types/auth.types';
 import {
   Box,
   Button,
@@ -23,29 +26,48 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import { Add, Delete, Search, Clear } from '@mui/icons-material';
+import { Add, Edit, Search, Clear } from '@mui/icons-material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs, { Dayjs } from 'dayjs';
+import 'dayjs/locale/es';
 
 export default function VehiculosPage() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
+  const [tiposVehiculo, setTiposVehiculo] = useState<TipoVehiculoConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingVehiculo, setEditingVehiculo] = useState<Vehiculo | null>(null);
   const [searchDominio, setSearchDominio] = useState('');
   const [error, setError] = useState('');
+  const [fechaMatriculacion, setFechaMatriculacion] = useState<Dayjs | null>(null);
   const [formData, setFormData] = useState<CreateVehiculoDto>({
     dominio: '',
     marca: '',
     modelo: '',
-    anio: new Date().getFullYear(),
-    tipo: 'AUTOMOVIL' as TipoVehiculo,
     combustible: 'NAFTA' as TipoCombustible,
     numeroMotor: '',
     numeroChasis: '',
+    fechaPrimeraMatriculacion: null,
+    tipoVehiculoId: undefined,
   });
 
   useEffect(() => {
     loadVehiculos();
+    loadTiposVehiculo();
   }, []);
+
+  const loadTiposVehiculo = async () => {
+    try {
+      const tipos = await tiposVehiculoService.getAll(true); // Solo activos
+      setTiposVehiculo(tipos);
+    } catch (err) {
+      console.error('Error al cargar tipos de vehículos:', err);
+      // No mostramos error crítico, solo log
+    }
+  };
 
   const loadVehiculos = async () => {
     try {
@@ -80,37 +102,78 @@ export default function VehiculosPage() {
     e.preventDefault();
     
     try {
-      await vehiculosService.create(formData);
+      // Convertir fecha dayjs a string ISO si existe
+      const dataToSend = {
+        ...formData,
+        fechaPrimeraMatriculacion: fechaMatriculacion ? fechaMatriculacion.toISOString() : null,
+      };
+
+      if (editingVehiculo) {
+        // Modo edición
+        await vehiculosService.update(editingVehiculo.id, dataToSend);
+      } else {
+        // Modo creación
+        await vehiculosService.create(dataToSend);
+      }
       setShowForm(false);
+      setEditingVehiculo(null);
       setFormData({
         dominio: '',
         marca: '',
         modelo: '',
-        anio: new Date().getFullYear(),
-        tipo: 'AUTOMOVIL' as TipoVehiculo,
         combustible: 'NAFTA' as TipoCombustible,
         numeroMotor: '',
         numeroChasis: '',
+        fechaPrimeraMatriculacion: null,
+        tipoVehiculoId: undefined,
       });
+      setFechaMatriculacion(null);
       loadVehiculos();
       setError('');
     } catch (err: unknown) {
       const errorMsg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(errorMsg || 'Error al crear vehículo');
+      setError(errorMsg || `Error al ${editingVehiculo ? 'actualizar' : 'crear'} vehículo`);
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('¿Está seguro de eliminar este vehículo?')) return;
-    
-    try {
-      await vehiculosService.delete(id);
-      loadVehiculos();
-      setError('');
-    } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(errorMsg || 'Error al eliminar vehículo');
+  const handleEdit = (vehiculo: Vehiculo) => {
+    // Solo PLANTA_ADMIN puede editar
+    if (user?.role !== UserRole.PLANTA_ADMIN) {
+      setError('Solo los administradores de planta pueden editar vehículos');
+      return;
     }
+
+    setEditingVehiculo(vehiculo);
+    setFormData({
+      dominio: vehiculo.dominio,
+      marca: vehiculo.marca,
+      modelo: vehiculo.modelo,
+      combustible: vehiculo.combustible,
+      numeroMotor: vehiculo.numeroMotor || '',
+      numeroChasis: vehiculo.numeroChasis || '',
+      fechaPrimeraMatriculacion: vehiculo.fechaPrimeraMatriculacion || null,
+      tipoVehiculoId: vehiculo.tipoVehiculoId || undefined,
+    });
+    // Convertir fecha string a dayjs si existe
+    setFechaMatriculacion(vehiculo.fechaPrimeraMatriculacion ? dayjs(vehiculo.fechaPrimeraMatriculacion) : null);
+    setShowForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditingVehiculo(null);
+    setFormData({
+      dominio: '',
+      marca: '',
+      modelo: '',
+      combustible: 'NAFTA' as TipoCombustible,
+      numeroMotor: '',
+      numeroChasis: '',
+      fechaPrimeraMatriculacion: null,
+      tipoVehiculoId: undefined,
+    });
+    setFechaMatriculacion(null);
+    setError('');
   };
 
   const handleClearSearch = () => {
@@ -192,13 +255,14 @@ export default function VehiculosPage() {
               <TableCell>Año</TableCell>
               <TableCell>Tipo</TableCell>
               <TableCell>Combustible</TableCell>
+              <TableCell>Fecha 1° Matric.</TableCell>
               <TableCell align="right">Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {vehiculos.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={7} align="center">
                   No hay vehículos registrados
                 </TableCell>
               </TableRow>
@@ -212,16 +276,40 @@ export default function VehiculosPage() {
                   </TableCell>
                   <TableCell>{vehiculo.marca} {vehiculo.modelo}</TableCell>
                   <TableCell>{vehiculo.anio}</TableCell>
-                  <TableCell>{vehiculo.tipo}</TableCell>
+                  <TableCell>
+                    {vehiculo.tipoVehiculo ? (
+                      <Typography variant="body2" fontWeight="600">
+                        {vehiculo.tipoVehiculo.nombre}
+                      </Typography>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        -
+                      </Typography>
+                    )}
+                  </TableCell>
                   <TableCell>{vehiculo.combustible}</TableCell>
+                  <TableCell>
+                    {vehiculo.fechaPrimeraMatriculacion ? (
+                      dayjs(vehiculo.fechaPrimeraMatriculacion).format('DD/MM/YYYY')
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        -
+                      </Typography>
+                    )}
+                  </TableCell>
                   <TableCell align="right">
-                    <IconButton
-                      onClick={() => handleDelete(vehiculo.id)}
-                      size="small"
-                      color="error"
-                    >
-                      <Delete />
-                    </IconButton>
+                    {/* Solo PLANTA_ADMIN puede editar vehículos */}
+                    {user?.role === UserRole.PLANTA_ADMIN && (
+                      <IconButton
+                        onClick={() => handleEdit(vehiculo)}
+                        size="small"
+                        color="primary"
+                        title="Editar vehículo"
+                      >
+                        <Edit />
+                      </IconButton>
+                    )}
+                    {/* Los vehículos NO pueden ser eliminados */}
                   </TableCell>
                 </TableRow>
               ))
@@ -237,8 +325,8 @@ export default function VehiculosPage() {
       </Box>
 
       {/* Formulario Modal */}
-      <Dialog open={showForm} onClose={() => setShowForm(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Nuevo Vehículo</DialogTitle>
+      <Dialog open={showForm} onClose={handleCloseForm} maxWidth="md" fullWidth>
+        <DialogTitle>{editingVehiculo ? 'Editar Vehículo' : 'Nuevo Vehículo'}</DialogTitle>
         <form onSubmit={handleCreate}>
           <DialogContent>
             <Box display="flex" flexDirection="column" gap={2}>
@@ -251,6 +339,7 @@ export default function VehiculosPage() {
                   onChange={(e) => setFormData({ ...formData, dominio: e.target.value.toUpperCase() })}
                   inputProps={{ maxLength: 10 }}
                   placeholder="ABC123"
+                  disabled={!!editingVehiculo} // No se puede editar el dominio
                 />
                 <TextField
                   label="Marca"
@@ -271,33 +360,47 @@ export default function VehiculosPage() {
                   onChange={(e) => setFormData({ ...formData, modelo: e.target.value })}
                   placeholder="Corolla"
                 />
-                <TextField
-                  label="Año"
-                  type="number"
-                  required
-                  fullWidth
-                  value={formData.anio}
-                  onChange={(e) => setFormData({ ...formData, anio: parseInt(e.target.value) })}
-                  inputProps={{ min: 1900, max: new Date().getFullYear() + 1 }}
-                />
+                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+                  <DatePicker
+                    label="Fecha Primera Matriculación"
+                    value={fechaMatriculacion}
+                    onChange={(newValue) => setFechaMatriculacion(newValue)}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        required: true,
+                        helperText: 'El año se calculará automáticamente',
+                      },
+                    }}
+                    format="DD/MM/YYYY"
+                  />
+                </LocalizationProvider>
               </Box>
               
+              <TextField
+                label="Tipo de Vehículo"
+                select
+                required
+                fullWidth
+                value={formData.tipoVehiculoId || ''}
+                onChange={(e) => {
+                  const tipoId = e.target.value ? Number(e.target.value) : undefined;
+                  setFormData({ ...formData, tipoVehiculoId: tipoId });
+                }}
+                helperText="Tipo configurado por CÁMARA"
+              >
+                <MenuItem value="">
+                  <em>Seleccionar tipo</em>
+                </MenuItem>
+                {tiposVehiculo.map((tipo) => (
+                  <MenuItem key={tipo.id} value={tipo.id}>
+                    {tipo.nombre}
+                    {tipo.descripcion && ` - ${tipo.descripcion}`}
+                  </MenuItem>
+                ))}
+              </TextField>
+              
               <Box display="flex" gap={2}>
-                <TextField
-                  label="Tipo de Vehículo"
-                  select
-                  required
-                  fullWidth
-                  value={formData.tipo}
-                  onChange={(e) => setFormData({ ...formData, tipo: e.target.value as TipoVehiculo })}
-                >
-                  <MenuItem value="AUTOMOVIL">Automóvil</MenuItem>
-                  <MenuItem value="CAMIONETA">Camioneta</MenuItem>
-                  <MenuItem value="CAMION">Camión</MenuItem>
-                  <MenuItem value="MOTO">Moto</MenuItem>
-                  <MenuItem value="COLECTIVO">Colectivo</MenuItem>
-                  <MenuItem value="OTRO">Otro</MenuItem>
-                </TextField>
                 <TextField
                   label="Combustible"
                   select
@@ -312,6 +415,7 @@ export default function VehiculosPage() {
                   <MenuItem value="ELECTRICO">Eléctrico</MenuItem>
                   <MenuItem value="HIBRIDO">Híbrido</MenuItem>
                 </TextField>
+                <Box flexGrow={1} /> {/* Spacer para mantener diseño */}
               </Box>
               
               <Box display="flex" gap={2}>
@@ -331,11 +435,11 @@ export default function VehiculosPage() {
             </Box>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setShowForm(false)}>
+            <Button onClick={handleCloseForm}>
               Cancelar
             </Button>
             <Button type="submit" variant="contained" color="success">
-              Crear Vehículo
+              {editingVehiculo ? 'Actualizar Vehículo' : 'Crear Vehículo'}
             </Button>
           </DialogActions>
         </form>

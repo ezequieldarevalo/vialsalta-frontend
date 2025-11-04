@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useSnackbar } from '../context/SnackbarContext';
 import revisionesService from '../services/revisiones.service';
 import vehiculosService from '../services/vehiculos.service';
 import certificadosService from '../services/certificados.service';
@@ -34,11 +35,17 @@ import { ArrowBack, Logout, CheckCircle, Cancel, Warning, Add, Close, Descriptio
 
 export default function RevisionesPage() {
   const { user, logout } = useAuth();
+  const { success, error: showError, info } = useSnackbar();
   const [revisiones, setRevisiones] = useState<Revision[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [estadisticas, setEstadisticas] = useState<EstadisticasRevisiones | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showObleaDialog, setShowObleaDialog] = useState(false);
+  const [showObservacionesDialog, setShowObservacionesDialog] = useState(false);
+  const [observacionesActual, setObservacionesActual] = useState('');
+  const [selectedRevisionId, setSelectedRevisionId] = useState<number | null>(null);
+  const [codigoQrInput, setCodigoQrInput] = useState('');
   const [dominioSearch, setDominioSearch] = useState('');
   const [formData, setFormData] = useState<CreateRevisionDto>({
     vehiculoId: 0,
@@ -72,13 +79,13 @@ export default function RevisionesPage() {
     e.preventDefault();
     
     if (formData.vehiculoId === 0) {
-      alert('Debe seleccionar un vehículo');
+      showError('Debe seleccionar un vehículo');
       return;
     }
     
     try {
       await revisionesService.create(formData);
-      alert('Revisión técnica creada exitosamente');
+      success('Revisión técnica creada exitosamente');
       setShowForm(false);
       setFormData({
         vehiculoId: 0,
@@ -88,27 +95,74 @@ export default function RevisionesPage() {
       });
       loadData();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al crear revisión');
+      showError(error.response?.data?.message || 'Error al crear revisión');
     }
   };
 
   const handleAsignarOblea = async (revisionId: number) => {
-    if (!confirm('¿Desea asignar una oblea a esta revisión aprobada?')) return;
+    setSelectedRevisionId(revisionId);
+    setCodigoQrInput('');
+    setShowObleaDialog(true);
+  };
+
+  const handleCodigoQrChange = (value: string) => {
+    setCodigoQrInput(value);
+    
+    // Patrón del QR: OBL-{numero}-{hash16} o URL completa con /verificar/OBL-{numero}-{hash16}
+    const qrPattern = /(?:\/verificar\/)?OBL-(\d+)-([a-f0-9]{16})/i;
+    const match = value.match(qrPattern);
+    
+    if (match) {
+      const numeroOblea = parseInt(match[1]);
+      // Auto-submit cuando se detecta el patrón completo
+      procesarAsignacionOblea(numeroOblea);
+    }
+  };
+
+  const procesarAsignacionOblea = async (numeroOblea: number) => {
+    if (!selectedRevisionId) return;
     
     try {
-      await revisionesService.asignarOblea(revisionId);
-      alert('Oblea asignada y certificado generado exitosamente');
+      await revisionesService.asignarOblea(selectedRevisionId, numeroOblea);
+      success('Oblea asignada y certificado generado exitosamente');
+      setShowObleaDialog(false);
+      setCodigoQrInput('');
+      setSelectedRevisionId(null);
       loadData();
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al asignar oblea');
+    } catch (error: unknown) {
+      const errorMessage = (error as any).response?.data?.message || 'Error al asignar oblea';
+      showError(errorMessage);
     }
   };
 
   const handleDescargarCertificado = async (revisionId: number) => {
     try {
+      console.log('🔍 Descargando certificado para revisión:', revisionId);
       await certificadosService.descargarPDF(revisionId);
+      console.log('✅ Certificado descargado exitosamente');
+      success('Certificado descargado correctamente');
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al descargar certificado');
+      console.error('❌ Error al descargar certificado:', error);
+      console.error('❌ Response data:', error.response?.data);
+      console.error('❌ Status:', error.response?.status);
+      
+      // Si el response es un Blob, leer su contenido
+      if (error.response?.data instanceof Blob) {
+        const text = await error.response.data.text();
+        console.error('❌ Blob content:', text);
+        try {
+          const jsonError = JSON.parse(text);
+          showError(jsonError.message || text);
+          return;
+        } catch {
+          showError(text);
+          return;
+        }
+      }
+      
+      const errorMessage = error.response?.data?.message || error.message || 'Error al descargar certificado';
+      showError(errorMessage);
+      console.error('Revisa la consola (F12) para más detalles');
     }
   };
 
@@ -376,6 +430,79 @@ export default function RevisionesPage() {
             </DialogActions>
           </Dialog>
 
+          {/* Dialog para escanear QR de oblea */}
+          <Dialog 
+            open={showObleaDialog} 
+            onClose={() => {
+              setShowObleaDialog(false);
+              setCodigoQrInput('');
+              setSelectedRevisionId(null);
+            }}
+            maxWidth="sm"
+            fullWidth
+          >
+            <DialogTitle sx={{ 
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span>📱 Escanear Oblea</span>
+              <Close 
+                onClick={() => {
+                  setShowObleaDialog(false);
+                  setCodigoQrInput('');
+                  setSelectedRevisionId(null);
+                }}
+                sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
+              />
+            </DialogTitle>
+            
+            <DialogContent sx={{ mt: 3, pb: 3 }}>
+              <Alert severity="info" sx={{ mb: 3 }}>
+                <Typography variant="body2">
+                  <strong>Instrucciones:</strong>
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  1. Coloque el cursor en el campo de texto<br/>
+                  2. Escanee el código QR con la pistola lectora<br/>
+                  3. La asignación se realizará automáticamente
+                </Typography>
+              </Alert>
+
+              <TextField
+                autoFocus
+                label="Código QR de la Oblea"
+                fullWidth
+                value={codigoQrInput}
+                onChange={(e) => handleCodigoQrChange(e.target.value)}
+                placeholder="OBL-123456-abc123def456789a"
+                helperText="Escanee el código QR o ingrese manualmente"
+                sx={{ 
+                  '& .MuiOutlinedInput-root': {
+                    fontSize: '1.1rem',
+                    fontFamily: 'monospace'
+                  }
+                }}
+              />
+            </DialogContent>
+
+            <DialogActions sx={{ p: 2.5, pt: 0 }}>
+              <Button
+                onClick={() => {
+                  setShowObleaDialog(false);
+                  setCodigoQrInput('');
+                  setSelectedRevisionId(null);
+                }}
+                variant="outlined"
+                color="inherit"
+              >
+                Cancelar
+              </Button>
+            </DialogActions>
+          </Dialog>
+
           {/* Lista de revisiones */}
           <TableContainer component={Paper} sx={{ boxShadow: 2 }}>
             <Table>
@@ -452,20 +579,24 @@ export default function RevisionesPage() {
                                 Asignar Oblea
                               </Button>
                             )}
-                            {revision.oleaId && isPlantaAdmin && (
+                            {/* Certificado: para APROBADO con oblea O para CONDICIONAL (sin oblea) */}
+                            {((revision.oleaId && revision.resultado === 'APROBADO') || revision.resultado === 'CONDICIONAL') && isPlantaAdmin && (
                               <Button
                                 onClick={() => handleDescargarCertificado(revision.id)}
                                 variant="contained"
                                 size="small"
-                                color="success"
+                                color={revision.resultado === 'CONDICIONAL' ? 'warning' : 'success'}
                                 startIcon={<Description />}
                               >
-                                Certificado
+                                {revision.resultado === 'CONDICIONAL' ? 'Cert. Temporal' : 'Certificado'}
                               </Button>
                             )}
                             {revision.observaciones && (
                               <Button
-                                onClick={() => alert(revision.observaciones)}
+                                onClick={() => {
+                                  setObservacionesActual(revision.observaciones || '');
+                                  setShowObservacionesDialog(true);
+                                }}
                                 variant="text"
                                 size="small"
                               >
@@ -486,6 +617,26 @@ export default function RevisionesPage() {
             Total: {revisiones.length} revisión(es)
           </Typography>
       </Box>
+
+      {/* Dialog de Observaciones */}
+      <Dialog
+        open={showObservacionesDialog}
+        onClose={() => setShowObservacionesDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Observaciones de la Revisión</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', mt: 1 }}>
+            {observacionesActual}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowObservacionesDialog(false)} variant="contained">
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

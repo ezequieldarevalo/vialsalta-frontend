@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { SnackbarProvider } from './context/SnackbarContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -11,13 +12,16 @@ import VehiculosPage from './pages/VehiculosPage';
 import PlantasPage from './pages/PlantasPage';
 import MunicipiosPage from './pages/MunicipiosPage';
 import UsersPage from './pages/UsersPage';
+import TiposVehiculoPage from './pages/TiposVehiculoPage';
+import { EstadisticasPage } from './pages/EstadisticasPage';
 
 
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+      <SnackbarProvider>
+        <BrowserRouter>
+          <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route
             path="/dashboard"
@@ -75,11 +79,28 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/tipos-vehiculo"
+            element={
+              <ProtectedRoute allowedRoles={[UserRole.CAMARA]}>
+                <TiposVehiculoPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/estadisticas"
+            element={
+              <ProtectedRoute allowedRoles={[UserRole.PLANTA_ADMIN]}>
+                <EstadisticasPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/verificar/:codigoQr?" element={<VerificarPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
+      </SnackbarProvider>
     </AuthProvider>
   );
 }

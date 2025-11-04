@@ -52,9 +52,13 @@ class RevisionesService {
 
   /**
    * Asignar oblea a una revisión aprobada
+   * @param revisionId ID de la revisión
+   * @param numeroOblea Número de la oblea escaneada/ingresada manualmente
    */
-  async asignarOblea(revisionId: number): Promise<Revision> {
-    const response = await api.post<Revision>(`/revisiones/${revisionId}/asignar-oblea`);
+  async asignarOblea(revisionId: number, numeroOblea: number): Promise<Revision> {
+    const response = await api.post<Revision>(`/revisiones/${revisionId}/asignar-oblea`, {
+      numeroOblea,
+    });
     return response.data;
   }
 
