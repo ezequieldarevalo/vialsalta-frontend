@@ -108,7 +108,7 @@ export default function VehiculosPage() {
       const dataToSend = {
         ...formData,
         fechaPrimeraMatriculacion: fechaMatriculacion ? fechaMatriculacion.toISOString() : null,
-        fotoUrl: fotoUrl || undefined,
+        fotoUrl: fotoUrl === '' ? null : fotoUrl, // null para borrar, string para actualizar
       };
 
       if (editingVehiculo) {

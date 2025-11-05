@@ -50,7 +50,7 @@ export interface CreateVehiculoDto {
   numeroChasis?: string;
   fechaPrimeraMatriculacion?: string | null;
   tipoVehiculoId?: number; // ID del tipo de vehículo configurado por CAMARA
-  fotoUrl?: string; // URL de la foto del vehículo
+  fotoUrl?: string | null; // URL de la foto del vehículo (null para borrar)
 }
 
 export type UpdateVehiculoDto = Partial<CreateVehiculoDto>;
