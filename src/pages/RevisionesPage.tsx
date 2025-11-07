@@ -35,7 +35,7 @@ import { ArrowBack, Logout, CheckCircle, Cancel, Warning, Add, Close, Descriptio
 
 export default function RevisionesPage() {
   const { user, logout } = useAuth();
-  const { success, error: showError, info } = useSnackbar();
+  const { success, error: showError } = useSnackbar();
   const [revisiones, setRevisiones] = useState<Revision[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [estadisticas, setEstadisticas] = useState<EstadisticasRevisiones | null>(null);
@@ -184,8 +184,8 @@ export default function RevisionesPage() {
   }
 
   // Determinar permisos
-  const isPlantaOperador = user?.role === UserRole.PLANTA_OPERADOR || user?.role === 'PLANTA_OPERADOR';
-  const isPlantaAdmin = user?.role === UserRole.PLANTA_ADMIN || user?.role === 'PLANTA_ADMIN';
+  const isPlantaOperador = user?.role === UserRole.PLANTA_OPERADOR;
+  const isPlantaAdmin = user?.role === UserRole.PLANTA_ADMIN;
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
